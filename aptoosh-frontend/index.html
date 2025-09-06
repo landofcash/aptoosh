@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aptoosh — Under Construction</title>
+  <meta name="description" content="Aptoosh is a decentralized checkout system on Aptos for instant, self-service shopping using QR codes. Scan and pay — no logins, no apps, no terminals.">
+  <meta property="og:title" content="Aptoosh — Under Construction">
+  <meta property="og:description" content="Decentralized checkout on Aptos. Scan and pay. Smart-contract based, supports digital and physical products.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#0b5fff">
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #111735;
+      --text: #e9eefc;
+      --muted: #a9b3d6;
+      --accent: #4c7dff;
+      --accent-2: #69e0ff;
+      --gold: #d6b57e;
+    }
+    * { box-sizing: border-box; }
+    html { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 800px at 80% -10%, rgba(105,224,255,0.12), rgba(0,0,0,0)) no-repeat,
+                  radial-gradient(900px 700px at -10% 110%, rgba(76,125,255,0.10), rgba(0,0,0,0)) no-repeat,
+                  var(--bg);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.55;
+      letter-spacing: 0.1px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 16px;
+      padding-top: max(16px, env(safe-area-inset-top));
+    }
+    main {
+      width: min(720px, 92vw);
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      border-radius: 18px;
+      padding: 28px 22px;
+      box-shadow: 0 12px 50px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+      backdrop-filter: blur(8px) saturate(110%);
+      position: relative;
+    }
+    /* soften gold glow overlay for less visual blockage */
+    main::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      background: radial-gradient(600px 180px at 20% 0%, rgba(214,181,126,0.12), rgba(0,0,0,0));
+      pointer-events: none;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: 0.3px;
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(76,125,255,0.18), rgba(76,125,255,0.12));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    h1 {
+      margin: 16px 0 8px;
+      font-size: clamp(30px, 4.8vw, 40px);
+      line-height: 1.12;
+      letter-spacing: 0.2px;
+      font-weight: 700;
+    }
+    .tagline { color: var(--muted); margin: 0 0 22px; font-size: 1.02rem; }
+    .card {
+      margin-top: 16px;
+      padding: 18px;
+      background: rgba(10,15,40,0.46);
+      border-radius: 14px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.30);
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 10px;
+      font-weight: 600;
+    }
+    .section-title::before {
+      content: "";
+      width: 28px;
+      height: 2px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      opacity: 0.7;
+    }
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0 0;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .feature-item {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 12px 12px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    }
+    .feature-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(80% 80% at 30% 20%, rgba(214,181,126,0.45), rgba(214,181,126,0.15));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 6px 18px rgba(214,181,126,0.18);
+      color: #1b1f33;
+      font-size: 15px;
+    }
+    .feature-text { color: var(--text); }
+    .feature-text em { color: var(--muted); font-style: normal; }
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent);
+      margin: 14px 0;
+    }
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(214,181,126,0.18), rgba(214,181,126,0.10));
+      color: var(--text);
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 30px rgba(214,181,126,0.12);
+      cursor: not-allowed;
+      opacity: 0.95;
+    }
+    .cta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+    ul { margin: 8px 0 0 18px; color: var(--text); }
+    li { margin: 6px 0; }
+    code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.95em; }
+    footer { margin-top: 22px; color: var(--muted); font-size: 14px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--accent-2); }
+    .hint { color: var(--muted); font-size: 0.95em; }
+    @media (min-width: 680px) {
+      .feature-list { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+    @media (prefers-color-scheme: light) {
+      :root { --bg: #f6f8ff; --text: #0e1222; --muted: #465079; }
+      body { background: radial-gradient(1200px 800px at 80% -10%, rgba(105,224,255,0.20), rgba(255,255,255,0)) no-repeat,
+                          radial-gradient(900px 700px at -10% 110%, rgba(76,125,255,0.18), rgba(255,255,255,0)) no-repeat,
+                          var(--bg); }
+      .card { background: rgba(255,255,255,0.75); }
+      .feature-item { background: linear-gradient(180deg, rgba(0,0,0,0.03), rgba(0,0,0,0.015)); }
+    }
+  </style>
+</head>
+<body>
+  <main role="main" aria-labelledby="title">
+    <span class="badge" aria-label="Status: Under construction">🚧 Under Construction</span>
+    <h1 id="title">Aptoosh</h1>
+    <p class="tagline">Decentralized checkout on <span class="mono">Aptos</span> — instant, self‑service shopping with QR codes.</p>
+
+    <div class="card" aria-label="About Aptoosh">
+      <p class="section-title">About Aptoosh</p>
+      <p><strong>Scan and pay.</strong> No logins, no apps, no terminals — just a QR code.</p>
+      <p><strong>Smart contract‑based checkout</strong> supporting both digital and physical products.</p>
+      <div class="divider" role="presentation"></div>
+      <p><strong>On‑chain orders</strong> stored on Aptos, including:</p>
+      <ul class="feature-list" role="list">
+        <li class="feature-item">
+          <div class="feature-icon" aria-hidden="true">✓</div>
+          <div class="feature-text">Metadata <em>(status, address, etc.)</em></div>
+        </li>
+        <li class="feature-item">
+          <div class="feature-icon" aria-hidden="true">🔐</div>
+          <div class="feature-text">Encrypted delivery info and list of purchased items <em>(product ID, name, price, etc.)</em></div>
+        </li>
+        <li class="feature-item">
+          <div class="feature-icon" aria-hidden="true">💳</div>
+          <div class="feature-text">Payment account info <em>(buyer or backend account handling card payments)</em></div>
+        </li>
+      </ul>
+      <div class="divider" role="presentation"></div>
+      <button class="cta" type="button" aria-disabled="true" title="Coming soon">
+        <span class="dot" aria-hidden="true"></span>
+        Coming soon
+      </button>
+    </div>
+
+    <p class="hint">This page is a placeholder while we build out the full experience.</p>
+
+    <footer>
+      <span>© <span id="year"></span> Aptoosh</span>
+      <span>Made with ❤ for the Aptos ecosystem</span>
+    </footer>
+  </main>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
