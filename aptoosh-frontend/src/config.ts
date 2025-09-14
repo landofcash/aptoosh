@@ -15,7 +15,7 @@ export interface TokenConfig {
 export interface AptosEndpoints {
   nodeUrl: string; // Full node REST base URL (v1)
   indexerGraphqlUrl: string; // Indexer GraphQL endpoint
-  indexerRestUrl?: string; // Optional alternative indexer REST
+  indexerRestUrl?: string; // Optional alternative is indexer REST
   faucetUrl?: string; // Dev/test/local only
 }
 
@@ -30,7 +30,7 @@ export interface NetworkConfig {
   maxGasAmount?: number; // in gas units
 }
 
-export const APP_VERSION = '0.1.10';
+export const APP_VERSION = '0.2.00';
 export const signPrefix = 'aptoosh-';
 
 export const APP_NAME = 'Aptoosh';
