@@ -1,4 +1,5 @@
 module aptoosh::products {
+    use std::option;
     use std::signer;
     use std::string;
     use aptos_std::table;
@@ -17,7 +18,7 @@ module aptoosh::products {
     const E_NOT_FOUND: u64 = 5;
     const E_NOT_ADMIN: u64 = 8;
 
-    struct Product has store, drop {
+    struct Product has copy, store, drop {
         version: u8,
         shop: address,
         products_url: string::String,
@@ -83,5 +84,18 @@ module aptoosh::products {
         assert!(p.shop == signer::address_of(shop), E_NOT_OWNER);
         let _ = store.products.remove(copy seed);
         event::emit<ProductDeleted>(ProductDeleted { seed, ts: timestamp::now_seconds() });
+    }
+
+    #[view]
+    public fun get_product(seed: vector<u8>): option::Option<Product> acquires Products {
+        if (!exists<Products>(@aptoosh)) {
+            return option::none<Product>();
+        };
+        let store = borrow_global<Products>(@aptoosh);
+        if (!store.products.contains(copy seed)) {
+            return option::none<Product>();
+        };
+        let p = store.products.borrow(copy seed);
+        option::some<Product>(*p)
     }
 }

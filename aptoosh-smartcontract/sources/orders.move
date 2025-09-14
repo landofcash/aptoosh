@@ -521,7 +521,7 @@ module aptoosh::orders {
             emit_state(seed, prev2, S_REFUNDED_TO_BUYER, @aptoosh);
         };
     }
-    
+
     /* ----- Optional: chunked encrypted address ----- */
     public(friend) fun set_addr_chunk(
         actor: &signer,
