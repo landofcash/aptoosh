@@ -4,11 +4,12 @@ module aptoosh::orders {
     use std::vector;
     use aptos_std::table;
     use aptos_std::type_info;
+    use aptos_framework::account;
     use aptos_framework::event;
     use aptos_framework::timestamp;
     use aptoosh::escrow;
 
-    friend aptoosh::market;
+    friend aptoosh::aptoosh;
 
     // Inline constants (Move consts are module-private; avoid cross-module getters)
     const SEED_LEN: u64 = 22;
@@ -30,7 +31,11 @@ module aptoosh::orders {
     const E_BAD_STATE: u64 = 6;
     const E_UNDERPAID: u64 = 7;
     const E_NOT_ADMIN: u64 = 8;
-
+    
+    const EVENT_CREATE: u8 = 1;
+    const EVENT_UPDATE: u8 = 2;
+    const EVENT_DELETE: u8 = 3;
+    
     struct OrderMeta has copy, store, drop {
         version: u8,
         product_seed: vector<u8>, // 22 bytes
@@ -50,53 +55,17 @@ module aptoosh::orders {
         created_ts: u64,
         updated_ts: u64
     }
-
-    #[event]
-    struct OrderCreated has store, drop {
-        seed: vector<u8>,
-        seller: address,
-        price: u64,
-        ts: u64
+    
+    struct OrderEvents has key {
+       event: event::EventHandle<OrderEvent>
     }
 
     #[event]
-    struct OrderStatusChanged has store, drop {
+    struct OrderEvent has store, drop {
         seed: vector<u8>,
-        prev: u8,
-        next: u8,
-        ts: u64,
-        actor: address
+        action: u8
     }
-
-    #[event]
-    struct OrderDeleted has store, drop {
-        seed: vector<u8>,
-        ts: u64,
-        actor: address
-    }
-
-    // Emitted when funds are released from escrow to seller
-    #[event]
-    struct EscrowPayout has store, drop {
-        seed: vector<u8>,
-        to: address,
-        amount: u64,
-        token: type_info::TypeInfo,
-        ts: u64,
-        actor: address
-    }
-
-    // Emitted when funds are refunded from escrow (to buyer/payer or to seller in edge cases)
-    #[event]
-    struct EscrowRefund has store, drop {
-        seed: vector<u8>,
-        to: address,
-        amount: u64,
-        token: type_info::TypeInfo,
-        ts: u64,
-        actor: address
-    }
-
+    
     /// Key for chunked encrypted address: avoids tuple-as-key uncertainty.
     struct AddrKey has copy, store, drop {
         seed: vector<u8>,
@@ -126,15 +95,15 @@ module aptoosh::orders {
                 addr_chunks: table::new<AddrKey, vector<u8>>()
             }
         );
-    }
-
-    /* ----- Helpers ----- */
-    fun emit_state(seed: vector<u8>, prev: u8, next: u8, actor: address) {
-        event::emit<OrderStatusChanged>(
-            OrderStatusChanged { seed, prev, next, ts: timestamp::now_seconds(), actor }
+        move_to(
+            publisher,
+            OrderEvents {
+                event: account::new_event_handle<OrderEvent>(publisher)
+            }
         );
     }
 
+    /* ----- Helpers ----- */    
     /// Replace a value in a Table<K, vector<u8>> (remove if exists, then add).
     fun table_put_vec<K: copy + drop>(
         t: &mut table::Table<K, vector<u8>>,
@@ -166,7 +135,7 @@ module aptoosh::orders {
         sym_key_hash: vector<u8>,
         payload_hash_buyer: vector<u8>,
         buyer_encrypted: vector<u8> // buyer's encrypted blob
-    ) acquires Orders {
+    ) acquires Orders, OrderEvents {
         assert!(
             seed.length() == SEED_LEN && product_seed.length() == SEED_LEN,
             E_BAD_SEED
@@ -201,8 +170,9 @@ module aptoosh::orders {
         store.by_id.add(copy seed, meta);
         table_put_vec<vector<u8>>(&mut store.buyer_blob, copy seed, buyer_encrypted);
 
-        event::emit<OrderCreated>(
-            OrderCreated { seed, seller, price: price_amount, ts: now }
+        let events = borrow_global_mut<OrderEvents>(@aptoosh);
+        event::emit_event(
+            &mut events.event, OrderEvent { seed, action: EVENT_CREATE }
         );
     }
 
@@ -221,7 +191,7 @@ module aptoosh::orders {
         buyer_encrypted: vector<u8>,
         amount: u64,
         required_price: u64
-    ) acquires Orders {
+    ) acquires Orders, OrderEvents {
         assert!(
             seed.length() == SEED_LEN && product_seed.length() == SEED_LEN,
             E_BAD_SEED
@@ -259,21 +229,16 @@ module aptoosh::orders {
         store.by_id.add(copy seed, meta);
         table_put_vec<vector<u8>>(&mut store.buyer_blob, copy seed, buyer_encrypted);
 
-        event::emit<OrderCreated>(
-            OrderCreated { seed: copy seed, seller, price: required_price, ts: now }
-        );
-        emit_state(
-            seed,
-            S_INITIAL,
-            S_PAID,
-            signer::address_of(buyer)
+        let events = borrow_global_mut<OrderEvents>(@aptoosh);
+        event::emit_event(
+            &mut events.event, OrderEvent { seed, action: EVENT_CREATE }
         );
     }
 
     /* ----- Pay for existing INITIAL order ----- */
     public(friend) fun buy_order<CoinType>(
         payer: &signer, seed: vector<u8>, amount: u64
-    ) acquires Orders {
+    ) acquires Orders, OrderEvents {
         let store = borrow_global_mut<Orders>(@aptoosh);
         assert!(store.by_id.contains(copy seed), E_NOT_FOUND);
         let meta = store.by_id.borrow_mut(copy seed);
@@ -292,14 +257,15 @@ module aptoosh::orders {
             );
         };
 
-        escrow::deposit<CoinType>(payer, amount);
-
-        let prev = meta.status;
+        escrow::deposit<CoinType>(payer, amount);        
         meta.status = S_PAID;
         meta.payer = option::some<address>(signer::address_of(payer));
         meta.updated_ts = timestamp::now_seconds();
 
-        emit_state(seed, prev, S_PAID, signer::address_of(payer));
+        let events = borrow_global_mut<OrderEvents>(@aptoosh);
+        event::emit_event(
+            &mut events.event, OrderEvent { seed, action: EVENT_UPDATE }
+        );
     }
 
     /* ----- Seller starts delivering (uploads seller blob + hash) ----- */
@@ -308,7 +274,7 @@ module aptoosh::orders {
         seed: vector<u8>,
         payload_hash_seller: vector<u8>,
         seller_encrypted: vector<u8>
-    ) acquires Orders {
+    ) acquires Orders, OrderEvents {
         let seller_addr = signer::address_of(seller_signer);
         let store = borrow_global_mut<Orders>(@aptoosh);
         assert!(store.by_id.contains(copy seed), E_NOT_FOUND);
@@ -316,19 +282,21 @@ module aptoosh::orders {
         assert!(meta.seller == seller_addr, E_NOT_OWNER);
         assert!(meta.status == S_PAID, E_BAD_STATE);
 
-        meta.payload_hash_seller = payload_hash_seller;
-        let prev = meta.status;
+        meta.payload_hash_seller = payload_hash_seller;        
         meta.status = S_DELIVERING;
         meta.updated_ts = timestamp::now_seconds();
 
         table_put_vec<vector<u8>>(&mut store.seller_blob, copy seed, seller_encrypted);
-        emit_state(seed, prev, S_DELIVERING, seller_addr);
+        let events = borrow_global_mut<OrderEvents>(@aptoosh);
+        event::emit_event(
+            &mut events.event, OrderEvent { seed, action: EVENT_UPDATE }
+        );
     }
 
     /* ----- Buyer confirms; funds released to seller ----- */
     public(friend) fun confirm_order<CoinType>(
         buyer_signer: &signer, seed: vector<u8>
-    ) acquires Orders {
+    ) acquires Orders, OrderEvents {
         let buyer_addr = signer::address_of(buyer_signer);
         let store = borrow_global_mut<Orders>(@aptoosh);
         assert!(store.by_id.contains(copy seed), E_NOT_FOUND);
@@ -338,29 +306,20 @@ module aptoosh::orders {
 
         assert_order_coin<CoinType>(meta);
         // Payout from escrow to seller
-        escrow::payout<CoinType>(meta.seller, meta.price_amount);
-        let token = type_info::type_of<CoinType>();
-        event::emit<EscrowPayout>(
-            EscrowPayout {
-                seed: copy seed,
-                to: meta.seller,
-                amount: meta.price_amount,
-                token,
-                ts: timestamp::now_seconds(),
-                actor: buyer_addr
-            }
-        );
-
-        let prev = meta.status;
+        escrow::payout<CoinType>(meta.seller, meta.price_amount);                
         meta.status = S_COMPLETED;
         meta.updated_ts = timestamp::now_seconds();
-        emit_state(seed, prev, S_COMPLETED, buyer_addr);
+        
+        let events = borrow_global_mut<OrderEvents>(@aptoosh);
+        event::emit_event(
+            &mut events.event, OrderEvent { seed, action: EVENT_UPDATE }
+        );
     }
 
     /* ----- Buyer requests refund (manual arbitration) ----- */
     public(friend) fun require_refund(
         buyer_signer: &signer, seed: vector<u8>
-    ) acquires Orders {
+    ) acquires Orders, OrderEvents {
         let buyer_addr = signer::address_of(buyer_signer);
         let store = borrow_global_mut<Orders>(@aptoosh);
         assert!(store.by_id.contains(copy seed), E_NOT_FOUND);
@@ -371,16 +330,19 @@ module aptoosh::orders {
             E_BAD_STATE
         );
 
-        let prev = meta.status;
         meta.status = S_REFUND_REQ;
         meta.updated_ts = timestamp::now_seconds();
-        emit_state(seed, prev, S_REFUND_REQ, buyer_addr);
+        
+        let events = borrow_global_mut<OrderEvents>(@aptoosh);
+        event::emit_event(
+            &mut events.event, OrderEvent { seed, action: EVENT_UPDATE }
+        );
     }
 
     /* ----- Admin processes refund to BUYER ----- */
     public(friend) fun process_refund_to_buyer<CoinType>(
         admin: &signer, seed: vector<u8>
-    ) acquires Orders {
+    ) acquires Orders, OrderEvents {
         assert!(signer::address_of(admin) == @aptoosh, E_NOT_ADMIN);
 
         let store = borrow_global_mut<Orders>(@aptoosh);
@@ -398,34 +360,19 @@ module aptoosh::orders {
             } else {
                 meta.buyer
             };
-        escrow::payout<CoinType>(to_addr, meta.price_amount);
-        let token = type_info::type_of<CoinType>();
-        event::emit<EscrowRefund>(
-            EscrowRefund {
-                seed: copy seed,
-                to: to_addr,
-                amount: meta.price_amount,
-                token,
-                ts: timestamp::now_seconds(),
-                actor: signer::address_of(admin)
-            }
-        );
-
-        let prev = meta.status;
+        escrow::payout<CoinType>(to_addr, meta.price_amount);        
         meta.status = S_REFUNDED_TO_BUYER;
         meta.updated_ts = timestamp::now_seconds();
-        emit_state(
-            seed,
-            prev,
-            S_REFUNDED_TO_BUYER,
-            signer::address_of(admin)
+        let events = borrow_global_mut<OrderEvents>(@aptoosh);
+        event::emit_event(
+            &mut events.event, OrderEvent { seed, action: EVENT_UPDATE }
         );
     }
 
     /* ----- Admin processes refund to SELLER (edge cases) ----- */
     public(friend) fun process_refund_to_seller<CoinType>(
         admin: &signer, seed: vector<u8>
-    ) acquires Orders {
+    ) acquires Orders, OrderEvents {
         assert!(signer::address_of(admin) == @aptoosh, E_NOT_ADMIN);
 
         let store = borrow_global_mut<Orders>(@aptoosh);
@@ -435,36 +382,20 @@ module aptoosh::orders {
             meta.status == S_REFUND_REQ || meta.status == S_PAID,
             E_BAD_STATE
         );
-
         assert_order_coin<CoinType>(meta);
-        escrow::payout<CoinType>(meta.seller, meta.price_amount);
-        let token = type_info::type_of<CoinType>();
-        event::emit<EscrowRefund>(
-            EscrowRefund {
-                seed: copy seed,
-                to: meta.seller,
-                amount: meta.price_amount,
-                token,
-                ts: timestamp::now_seconds(),
-                actor: signer::address_of(admin)
-            }
-        );
-
-        let prev = meta.status;
+        escrow::payout<CoinType>(meta.seller, meta.price_amount);        
         meta.status = S_REFUNDED_TO_SELLER;
         meta.updated_ts = timestamp::now_seconds();
-        emit_state(
-            seed,
-            prev,
-            S_REFUNDED_TO_SELLER,
-            signer::address_of(admin)
+        let events = borrow_global_mut<OrderEvents>(@aptoosh);
+        event::emit_event(
+            &mut events.event, OrderEvent { seed, action: EVENT_UPDATE }
         );
     }
 
     /* ----- Auto timeouts (anyone can trigger) ----- */
     public(friend) fun check_timeouts<CoinType>(
         _caller: &signer, seed: vector<u8>
-    ) acquires Orders {
+    ) acquires Orders, OrderEvents {
         let now = timestamp::now_seconds();
         let store = borrow_global_mut<Orders>(@aptoosh);
         assert!(store.by_id.contains(copy seed), E_NOT_FOUND);
@@ -475,22 +406,14 @@ module aptoosh::orders {
         if (meta.status == S_DELIVERING && age >= FIVE_DAYS) {
             // Auto-complete → pay seller
             escrow::payout<CoinType>(meta.seller, meta.price_amount);
-            let token = type_info::type_of<CoinType>();
-            event::emit<EscrowPayout>(
-                EscrowPayout {
-                    seed: copy seed,
-                    to: meta.seller,
-                    amount: meta.price_amount,
-                    token,
-                    ts: timestamp::now_seconds(),
-                    actor: @aptoosh
-                }
-            );
 
-            let prev = meta.status;
             meta.status = S_COMPLETED;
             meta.updated_ts = now;
-            emit_state(seed, prev, S_COMPLETED, @aptoosh);
+
+            let events = borrow_global_mut<OrderEvents>(@aptoosh);
+            event::emit_event(
+                &mut events.event, OrderEvent { seed, action: EVENT_UPDATE }
+            );
             return;
         };
 
@@ -503,22 +426,14 @@ module aptoosh::orders {
                     meta.buyer
                 };
             escrow::payout<CoinType>(to_addr, meta.price_amount);
-            let token = type_info::type_of<CoinType>();
-            event::emit<EscrowRefund>(
-                EscrowRefund {
-                    seed: copy seed,
-                    to: to_addr,
-                    amount: meta.price_amount,
-                    token,
-                    ts: timestamp::now_seconds(),
-                    actor: @aptoosh
-                }
-            );
 
-            let prev2 = meta.status;
             meta.status = S_REFUNDED_TO_BUYER;
             meta.updated_ts = now;
-            emit_state(seed, prev2, S_REFUNDED_TO_BUYER, @aptoosh);
+            
+            let events = borrow_global_mut<OrderEvents>(@aptoosh);
+            event::emit_event(
+                &mut events.event, OrderEvent { seed, action: EVENT_UPDATE }
+            );
         };
     }
 
@@ -545,7 +460,7 @@ module aptoosh::orders {
     }
 
     /* ----- Cleanup (rebates go to tx sender) ----- */
-    public(friend) fun delete_order(caller: &signer, seed: vector<u8>) acquires Orders {
+    public(friend) fun delete_order(caller: &signer, seed: vector<u8>) acquires Orders, OrderEvents {
         let caller_addr = signer::address_of(caller);
         let store = borrow_global_mut<Orders>(@aptoosh);
         assert!(store.by_id.contains(copy seed), E_NOT_FOUND);
@@ -574,8 +489,10 @@ module aptoosh::orders {
 
         // Remove metadata (rebate)
         let _ = store.by_id.remove(copy seed);
-        event::emit<OrderDeleted>(
-            OrderDeleted { seed, ts: timestamp::now_seconds(), actor: caller_addr }
+        
+        let events = borrow_global_mut<OrderEvents>(@aptoosh);
+        event::emit_event(
+            &mut events.event, OrderEvent { seed, action: EVENT_DELETE }
         );
     }
 

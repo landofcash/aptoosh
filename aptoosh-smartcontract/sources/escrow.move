@@ -5,7 +5,7 @@ module aptoosh::escrow {
     use aptos_framework::coin;
 
     friend aptoosh::orders;
-    friend aptoosh::market;
+    friend aptoosh::aptoosh;
 
     // Inline constants for this module
     const E_ALREADY_INITIALIZED: u64 = 2;

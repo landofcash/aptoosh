@@ -1,4 +1,4 @@
-module aptoosh::market {
+module aptoosh::aptoosh {
     use std::string;
 
     use aptoosh::orders;
