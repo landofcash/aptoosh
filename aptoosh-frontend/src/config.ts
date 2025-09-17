@@ -1,6 +1,4 @@
-// Aptos-oriented configuration
-
-export type NetworkId = 'mainnet' | 'testnet' | 'devnet' | 'local';
+export type NetworkId = 'mainnet' | 'testnet' | 'devnet';
 
 // Keep TokenConfig backward-compatible (numeric id) for current UI/helpers
 export interface TokenConfig {
@@ -43,6 +41,23 @@ export const MAX_ORDER_PAYLOAD_BYTES = 2048;
 const APTOS_EXPLORER_BASE = 'https://explorer.aptoslabs.com';
 
 const configs: Record<NetworkId, NetworkConfig> = {
+  mainnet: {
+    name: 'mainnet',
+    apiUrl: 'https://aptoosh-production.up.railway.app/api/m',
+    aptos: {
+      nodeUrl: 'https://fullnode.mainnet.aptoslabs.com/v1',
+      indexerGraphqlUrl: 'https://indexer.mainnet.aptoslabs.com/v1/graphql',
+      indexerRestUrl: 'https://indexer-mainnet.staging.gcp.aptosdev.com/v1',
+    },
+    explorerBaseUrl: APTOS_EXPLORER_BASE,
+    approvedShopWallets: [],
+    supportedTokens: [
+      { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
+    ],
+    defaultGasUnitPrice: 100,
+    maxGasAmount: 200_000,
+  },
+
   testnet: {
     name: 'testnet',
     apiUrl: 'https://aptoosh-production.up.railway.app/api/t',
@@ -62,22 +77,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
     defaultGasUnitPrice: 100,
     maxGasAmount: 200_000,
   },
-  mainnet: {
-    name: 'mainnet',
-    apiUrl: 'https://aptoosh-production.up.railway.app/api/m',
-    aptos: {
-      nodeUrl: 'https://fullnode.mainnet.aptoslabs.com/v1',
-      indexerGraphqlUrl: 'https://indexer.mainnet.aptoslabs.com/v1/graphql',
-      indexerRestUrl: 'https://indexer-mainnet.staging.gcp.aptosdev.com/v1',
-    },
-    explorerBaseUrl: APTOS_EXPLORER_BASE,
-    approvedShopWallets: [],
-    supportedTokens: [
-      { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
-    ],
-    defaultGasUnitPrice: 100,
-    maxGasAmount: 200_000,
-  },
+
   devnet: {
     name: 'devnet',
     apiUrl: 'https://aptoosh-production.up.railway.app/api/d',
@@ -93,23 +93,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
     ],
     defaultGasUnitPrice: 100,
     maxGasAmount: 200_000,
-  },
-  local: {
-    name: 'local',
-    apiUrl: 'http://localhost:3000/api',
-    aptos: {
-      nodeUrl: 'http://localhost:8080/v1',
-      indexerGraphqlUrl: 'http://localhost:8090/v1/graphql',
-      faucetUrl: 'http://localhost:8081',
-    },
-    explorerBaseUrl: APTOS_EXPLORER_BASE,
-    approvedShopWallets: [],
-    supportedTokens: [
-      { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
-    ],
-    defaultGasUnitPrice: 1,
-    maxGasAmount: 500_000,
-  },
+  }
 };
 
 export const getConfig = (network: NetworkId): NetworkConfig => configs[network];

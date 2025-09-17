@@ -2,7 +2,7 @@ import type {InternalAccount} from "@/lib/crypto/types/InternalAccount.ts";
 import type {GetStorageResult} from "@/lib/crypto/types/GetStorageResult.ts";
 
 export interface ChainAdapter {
-  readonly name: string; // e.g., 'aptos', 'algorand'
+  readonly name: string; // e.g., 'aptos'
 
   // Wallet-free operations (local/custodial)
   generateAccount(): Promise<InternalAccount>;

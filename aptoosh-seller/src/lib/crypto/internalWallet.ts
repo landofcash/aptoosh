@@ -1,0 +1,77 @@
+// utils/internalWallet.ts
+import {get, set} from 'idb-keyval'
+import {accountFromMnemonic, generateAccount} from "@/lib/crypto/cryptoUtils.ts";
+import type {InternalAccount} from "@/lib/crypto/types/InternalAccount.ts";
+import {APP_KEY_PREFIX} from "@/config.ts";
+
+const WALLET_KEY = `${APP_KEY_PREFIX}_internal_wallets`
+const ACTIVE_WALLET_KEY = `${APP_KEY_PREFIX}_active_internal_wallet`
+
+export interface StoredAccount {
+  addr: string
+  sk: number[]
+}
+
+export async function getActiveInternalWallet(): Promise<InternalAccount | null> {
+  const addr = await get(ACTIVE_WALLET_KEY)
+  if (!addr) return null
+
+  const all = await loadAllInternalWallets()
+  const match = all.find(w => w.addr.toString() === addr)
+  if (!match) return null
+
+  return {
+    addr: match.addr,
+    sk: new Uint8Array(match.sk),
+  }
+}
+
+export async function setActiveInternalWallet(addr: string) {
+  await set(ACTIVE_WALLET_KEY, addr)
+}
+
+export async function loadAllInternalWallets(): Promise<StoredAccount[]> {
+  return (await get(WALLET_KEY)) || []
+}
+
+export async function clearActiveInternalWallet() {
+  await set(ACTIVE_WALLET_KEY, null)
+}
+
+export async function createInternalWallet(): Promise<InternalAccount> {
+  const account = await generateAccount()
+  const wallets = await loadAllInternalWallets()
+  wallets.push({addr: account.addr, sk: Array.from(account.sk)})
+  await set(WALLET_KEY, wallets)
+  await set(ACTIVE_WALLET_KEY, account.addr) // <-- set as active
+  return account
+}
+
+export async function loadInternalWalletByAddress(addr: string): Promise<InternalAccount | null> {
+  const wallets = await loadAllInternalWallets()
+  const match = wallets.find(w => w.addr === addr)
+  if (!match) return null
+  return {
+    addr: match.addr,
+    sk: new Uint8Array(match.sk),
+  }
+}
+
+export async function importInternalWallet(mnemonic: string): Promise<InternalAccount> {
+  const acc = await accountFromMnemonic(mnemonic)
+  const stored: StoredAccount = {addr: acc.addr.toString(), sk: Array.from(acc.sk)};
+  const wallets = await loadAllInternalWallets();
+  if (!wallets.find(w => w.addr === acc.addr.toString())) {
+    wallets.push(stored);
+    await set(WALLET_KEY, wallets);
+  }
+  return acc;
+}
+
+export function exportInternalWallet(internalAccount: InternalAccount): string {
+  return internalAccount.mnemonic || "";
+}
+
+export async function clearInternalWallets() {
+  await set(WALLET_KEY, [])
+}
