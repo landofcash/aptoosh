@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button'
 import { useWallet } from '@/context/WalletContext'
 import { fetchSellerOrders, type Order } from '@/lib/syncService'
 import { ShoppingCart, Package, Eye, Calendar, User, DollarSign, Hash, Clock } from 'lucide-react'
-import AddressWithNFD from '@/components/AddressWithNFD'
 import CopyableField from '@/components/CopyableField'
 import TokenIcon from '@/components/TokenIcon'
 import { priceToDisplayString } from '@/lib/tokenUtils'
 import { formatUtcDate } from '@/lib/dateUtils'
 import OrderStatusBadge from '@/components/OrderStatusBadge'
+import AddressWithName from "@/components/AddressWithName.tsx";
 
 // Helper function to safely parse timestamp strings to numbers
 function parseTimestamp(timestamp: string): number {
@@ -171,7 +171,7 @@ function MyOrdersPage() {
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm font-medium text-muted-foreground">Customer:</span>
-                      <AddressWithNFD
+                      <AddressWithName
                         value={order.buyerWallet}
                         length={6}
                         mdLength={8}

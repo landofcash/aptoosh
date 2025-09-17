@@ -69,4 +69,12 @@ export const aptosAdapter: ChainAdapter = {
   async getStorageData(storageKey: string): Promise<GetStorageResult> {
     return aptosUtils.getStorageDataAptos(storageKey);
   },
+
+  async resolveAddressToName(address: string): Promise<string | null> {
+    return address; //TODO implement
+  },
+
+  async resolveNameToAddress(address: string): Promise<string | null> {
+    return address; //TODO implement
+  }
 };

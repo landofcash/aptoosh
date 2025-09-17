@@ -27,7 +27,6 @@ import {
   XCircle
 } from 'lucide-react'
 import {type Order} from '@/lib/syncService'
-import AddressWithNFD from '@/components/AddressWithNFD'
 import CopyableField from '@/components/CopyableField'
 import TokenIcon from '@/components/TokenIcon'
 import {priceToDisplayString, getTokenById} from '@/lib/tokenUtils'
@@ -40,6 +39,7 @@ import ConfirmDelivery from '@/components/ConfirmDelivery'
 import RefuseDelivery from '@/components/RefuseDelivery'
 import OrderStatusBadge from '@/components/OrderStatusBadge'
 import {getChainAdapter} from "@/lib/crypto/cryptoUtils.ts";
+import AddressWithName from "@/components/AddressWithName.tsx";
 
 // Helper function to safely parse timestamp strings to numbers
 function parseTimestamp(timestamp: string): number {
@@ -187,7 +187,8 @@ function OrderDetailsPage() {
 
         const decodedPayload = await getChainAdapter().getStorageData(order.seed)
         if(!decodedPayload.isFound) {
-          throw new Error(`Failed to read delivery data "${order.seed}", Not found`)
+          setPayloadLoadError(`Failed to read delivery data "${order.seed}", Not found`)
+          return
         }
         // Decode the raw payload to a string using TextDecoder
         setEncryptedPayloadFromBox(decodedPayload.data)
@@ -548,19 +549,19 @@ function OrderDetailsPage() {
               <div className="space-y-3">
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">Seller:</div>
-                  <AddressWithNFD value={order.seller} length={30} mdLength={63}/>
+                  <AddressWithName value={order.seller} length={30} mdLength={63}/>
                 </div>
 
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">Buyer:</div>
-                  <AddressWithNFD value={order.buyer} length={30} mdLength={63}/>
+                  <AddressWithName value={order.buyer} length={30} mdLength={63}/>
                 </div>
 
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">Payer:</div>
                   {order.payer === "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ" ?
                     (<div className="text-sm">----</div>) : (
-                      <AddressWithNFD value={order.payer} length={22} mdLength={63}/>
+                      <AddressWithName value={order.payer} length={22} mdLength={63}/>
                     )}
                 </div>
               </div>
