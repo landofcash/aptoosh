@@ -1,0 +1,133 @@
+export const APP_VERSION = '0.1.7'
+export const APP_NAME='Aptoosh'
+export const BASE_URL='https://aptoosh.com'
+
+// Sign prefix for encryption seed generation
+export const signPrefix = "aptoosh-";
+export const APP_KEY_PREFIX = 'Aptoosh';
+const APTOS_EXPLORER_BASE = 'https://explorer.aptoslabs.com';
+
+export type NetworkId = 'mainnet' | 'testnet' | 'devnet';
+
+// Keep TokenConfig backward-compatible (numeric id) for current UI/helpers
+export interface TokenConfig {
+  id: number; // synthetic numeric id for UI (0 reserved for APT)
+  name: string;
+  decimals: number;
+  img: string | null;
+  // Optional Aptos coin type string for future use
+  coinType?: string;
+}
+
+export interface AptosEndpoints {
+  nodeUrl: string; // Full node REST base URL (v1)
+  indexerGraphqlUrl: string; // Indexer GraphQL endpoint
+  indexerRestUrl?: string; // Optional alternative is indexer REST
+  faucetUrl?: string; // Dev/test/local only
+}
+
+export interface NetworkConfig {
+  cdnBasePath: string;
+  name: NetworkId;
+  apiUrl: string;
+  fileApiUrl:string;
+  aptos: AptosEndpoints;
+  explorerBaseUrl: string; // https://explorer.aptoslabs.com
+  approvedShopWallets: string[];
+  supportedTokens: TokenConfig[];
+  defaultGasUnitPrice?: number; // Octas per unit
+  maxGasAmount?: number; // in gas units
+}
+
+const configs: Record<NetworkId, NetworkConfig> = {
+  mainnet: {
+    name: 'mainnet',
+    apiUrl: 'https://aptoosh-production.up.railway.app/api/m',
+    fileApiUrl: 'https://aptoosh-production.up.railway.app/api/cdn',
+    cdnBasePath: 'https://aptoosh.b-cdn.net',
+    aptos: {
+      nodeUrl: 'https://fullnode.mainnet.aptoslabs.com/v1',
+      indexerGraphqlUrl: 'https://indexer.mainnet.aptoslabs.com/v1/graphql',
+      indexerRestUrl: 'https://indexer-mainnet.staging.gcp.aptosdev.com/v1',
+    },
+    explorerBaseUrl: APTOS_EXPLORER_BASE,
+    approvedShopWallets: [],
+    supportedTokens: [
+      { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
+    ],
+    defaultGasUnitPrice: 100,
+    maxGasAmount: 200_000,
+  },
+
+  testnet: {
+    name: 'testnet',
+    apiUrl: 'https://aptoosh-production.up.railway.app/api/t',
+    fileApiUrl: 'https://aptoosh-production.up.railway.app/api/cdn',
+    cdnBasePath: 'https://aptoosh.b-cdn.net',
+    aptos: {
+      nodeUrl: 'https://fullnode.testnet.aptoslabs.com/v1',
+      indexerGraphqlUrl: 'https://indexer.testnet.aptoslabs.com/v1/graphql',
+      indexerRestUrl: 'https://indexer-testnet.staging.gcp.aptosdev.com/v1',
+      faucetUrl: 'https://faucet.testnet.aptoslabs.com',
+    },
+    explorerBaseUrl: APTOS_EXPLORER_BASE,
+    approvedShopWallets: [
+      '0x0000000000000000000000000000000000000000000000000000000000000001',
+    ],
+    supportedTokens: [
+      { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
+    ],
+    defaultGasUnitPrice: 100,
+    maxGasAmount: 200_000,
+  },
+
+  devnet: {
+    name: 'devnet',
+    apiUrl: 'https://aptoosh-production.up.railway.app/api/d',
+    fileApiUrl: 'https://aptoosh-production.up.railway.app/api/cdn',
+    cdnBasePath: 'https://aptoosh.b-cdn.net',
+    aptos: {
+      nodeUrl: 'https://fullnode.devnet.aptoslabs.com/v1',
+      indexerGraphqlUrl: 'https://indexer.devnet.aptoslabs.com/v1/graphql',
+      faucetUrl: 'https://faucet.devnet.aptoslabs.com',
+    },
+    explorerBaseUrl: APTOS_EXPLORER_BASE,
+    approvedShopWallets: [],
+    supportedTokens: [
+      { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
+    ],
+    defaultGasUnitPrice: 100,
+    maxGasAmount: 200_000,
+  }
+};
+
+export const getConfig = (network: NetworkId): NetworkConfig => configs[network];
+
+export const getCurrentConfig = (): NetworkConfig => {
+  const raw = (localStorage.getItem('network') as NetworkId) || 'testnet';
+  const network: NetworkId = ['mainnet', 'testnet', 'devnet', 'local'].includes(raw) ? raw : 'testnet';
+  return getConfig(network);
+};
+
+// Aptos Explorer helpers
+export function explorerTxUrl(txHash: string, network?: NetworkId): string {
+  const cfg = network ? getConfig(network) : getCurrentConfig();
+  const n = cfg.name;
+  const suffix = n === 'mainnet' ? '' : `?network=${n}`;
+  return `${cfg.explorerBaseUrl}/txn/${txHash}${suffix}`;
+}
+
+export function explorerAccountUrl(address: string, network?: NetworkId): string {
+  const cfg = network ? getConfig(network) : getCurrentConfig();
+  const n = cfg.name;
+  const suffix = n === 'mainnet' ? '' : `?network=${n}`;
+  return `${cfg.explorerBaseUrl}/account/${address}${suffix}`;
+}
+
+export function explorerObjectUrl(objectAddress: string, network?: NetworkId): string {
+  const cfg = network ? getConfig(network) : getCurrentConfig();
+  const n = cfg.name;
+  const suffix = n === 'mainnet' ? '' : `?network=${n}`;
+  return `${cfg.explorerBaseUrl}/object/${objectAddress}${suffix}`;
+}
+
