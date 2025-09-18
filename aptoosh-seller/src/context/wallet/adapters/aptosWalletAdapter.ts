@@ -6,7 +6,13 @@ function provider(): any | null {
 
 export const aptosWalletAdapter: WalletAdapter = {
   chain: 'aptos',
-  name: 'petra-window-provider',
+  name: 'Petra (browser)',
+  id: 'petra',
+
+  isInstalled() {
+    const p = provider();
+    return !!(p && (p.isPetra || p.account));
+  },
 
   async getAddress() {
     const p = provider();

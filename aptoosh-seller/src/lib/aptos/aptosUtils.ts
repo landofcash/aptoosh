@@ -1,6 +1,7 @@
 import {Account, type Ed25519Account, Ed25519PrivateKey} from "@aptos-labs/ts-sdk";
 import {derivePath} from "ed25519-hd-key";
-import * as bip39 from "bip39";
+import * as bip39 from '@scure/bip39';
+import { wordlist } from '@scure/bip39/wordlists/english.js';
 
 import type {InternalAccount} from "@/lib/crypto/types/InternalAccount.ts";
 import type {GetStorageResult} from "@/lib/crypto/types/GetStorageResult.ts";
@@ -48,9 +49,9 @@ export function accountToMnemonicAptos(internalAccount: InternalAccount): string
 }
 
 async function generateAccountWithMnemonic(): Promise<InternalAccount> {
-  const mnemonic = bip39.generateMnemonic();
+  const mnemonic = bip39.generateMnemonic(wordlist);
   const seed = await bip39.mnemonicToSeed(mnemonic);
-  const {key} = derivePath(APTOS_PATH, seed.toString("hex"));
+  const {key} = derivePath(APTOS_PATH, bytesToHex(seed));
   const privateKey = new Ed25519PrivateKey(key);
   const account = Account.fromPrivateKey({privateKey});
   return {
@@ -64,3 +65,6 @@ export async function getStorageDataAptos(storageKey: string): Promise<GetStorag
   console.log("getStorageData storageKey:", storageKey);
   return {data: null, isFound: false};
 }
+
+const bytesToHex = (bytes: Uint8Array): string =>
+  Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
