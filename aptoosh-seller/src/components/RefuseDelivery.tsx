@@ -28,7 +28,7 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
   onDeliveryRefused,
   onCancel
 }) => {
-  const { walletAddress } = useWallet()
+  const { walletAddress, signMessage } = useWallet()
   const [customInfo, setCustomInfo] = useState('')
 
   // Two-step process state
@@ -80,7 +80,7 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
     try {
       // Sign the product seed with wallet (chain adapter) to generate the seller's key pair
       const dataToSign = signPrefix + atob(order.productSeed)
-      const signedBytes = await getChainAdapter().signMessageWithWallet(
+      const signedBytes = await signMessage(
         dataToSign,
         "Sign seed for delivery refusal payload encryption"
       )

@@ -9,13 +9,7 @@ export const aptosAdapter: ChainAdapter = {
   generateAccount: aptosUtils.generateAccountAptos,
   accountFromMnemonic: aptosUtils.accountFromMnemonicAptos,
   accountToMnemonic: aptosUtils.accountToMnemonicAptos,
-  signMessage: aptosUtils.signMessageAptos,
-
-  // External wallet
-  async signMessageWithWallet(dataToSign: string, humanReadableMessage: string): Promise<Uint8Array> {
-    // For now reuse the aptosUtils stub. Later, implement via the wallet standard.
-    return aptosUtils.signMessageWithWalletAptos(dataToSign, humanReadableMessage);
-  },
+  signMessageInternal: aptosUtils.signMessageAptos,
 
   async uploadCatalogueUrlToBlockchain(
     catalogueUrl: string,
@@ -71,10 +65,10 @@ export const aptosAdapter: ChainAdapter = {
   },
 
   async resolveAddressToName(address: string): Promise<string | null> {
-    return address; //TODO implement
+    return address;
   },
 
-  async resolveNameToAddress(address: string): Promise<string | null> {
-    return address; //TODO implement
+  async resolveNameToAddress(name: string): Promise<string | null> {
+    return name;
   }
 };

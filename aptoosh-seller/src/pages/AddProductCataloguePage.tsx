@@ -27,7 +27,7 @@ import AptosLogo from "@/components/Crypto/aptos/AptosLogo.tsx";
 import {getChainAdapter} from "@/lib/crypto/cryptoUtils.ts";
 
 function AddProductCataloguePage() {
-  const {walletAddress} = useWallet()
+  const {walletAddress, signMessage} = useWallet()
   const navigate = useNavigate()
   const location = useLocation();
   const state = location.state as { url?: string };
@@ -102,7 +102,7 @@ function AddProductCataloguePage() {
 
       // Sign the seed with the wallet (chain adapter)
       const dataToSign = signPrefix + newSeed
-      const signedBytes = await getChainAdapter().signMessageWithWallet(
+      const signedBytes = await signMessage(
         dataToSign,
         "Sign seed for product creation"
       )

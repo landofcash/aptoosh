@@ -3,7 +3,7 @@ export type NetworkId = 'mainnet' | 'testnet' | 'devnet' | 'local' | string;
 export type WalletKind = 'external' | 'internal';
 
 // Unique id of external wallet provider (e.g., 'petra', 'walletconnect')
-export type WalletProviderId = 'petra' | 'walletconnect' | string;
+export type WalletProviderId = 'petra' | 'pontem' | 'walletconnect' | string;
 
 export interface WalletAdapter {
   readonly chain: ChainId;
@@ -22,4 +22,6 @@ export interface WalletAdapter {
 
   onAccountChange?(cb: (address: string | null) => void): () => void;
   onNetworkChange?(cb: (network: NetworkId | null) => void): () => void;
+
+  signMessage?(dataToSign:string, message:string): Promise<Uint8Array>;
 }

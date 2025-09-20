@@ -5,10 +5,9 @@ import { generateAESKey, encryptAES, encryptWithECIES } from "@/utils/encryption
 import { b64FromBytes, hashCryptoKeyToB64, sha256 } from "@/utils/encoding";
 import ExpandableData from "@/components/ExpandableData";
 import { signPrefix } from "@/config";
-import { getChainAdapter } from "@/lib/crypto/cryptoUtils";
 
 const TestEncryptionPage: React.FC = () => {
-    const { walletAddress } = useWallet();
+    const { walletAddress, signMessage } = useWallet();
 
     const [seed, setSeed] = useState("");
     const [payload, setPayload] = useState("");
@@ -30,7 +29,7 @@ const TestEncryptionPage: React.FC = () => {
         try {
             setError(null);
             const dataToSign = signPrefix + seed;
-            const signedBytes = await getChainAdapter().signMessageWithWallet(
+            const signedBytes = await signMessage(
                 dataToSign,
                 "Sign encryption seed"
             );

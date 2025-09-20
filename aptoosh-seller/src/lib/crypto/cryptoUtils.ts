@@ -14,8 +14,8 @@ export function getChainAdapter(): ChainAdapter {
   return adapter;
 }
 
-export async function signMessage(internalAccount: InternalAccount, message: string): Promise<Uint8Array> {
-  return await adapter.signMessage(internalAccount, message);
+export async function signMessageInternal(internalAccount: InternalAccount, message: string): Promise<Uint8Array> {
+  return await adapter.signMessageInternal(internalAccount, message);
 }
 
 export async function generateAccount(): Promise<InternalAccount> {
@@ -30,10 +30,6 @@ export function accountToMnemonic(internalAccount: InternalAccount): string {
   const mnemonic = adapter.accountToMnemonic(internalAccount);
   if (!mnemonic) throw new Error("Failed to get mnemonic");
   return mnemonic;
-}
-
-export async function signMessageWithWallet(dataToSign: string, message: string): Promise<Uint8Array> {
-  return await adapter.signMessageWithWallet(dataToSign, message);
 }
 
 export async function getStorageData(storageKey: string): Promise<GetStorageResult> {

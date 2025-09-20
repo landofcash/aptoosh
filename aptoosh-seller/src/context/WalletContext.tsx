@@ -1,16 +1,17 @@
 import { createContext, useContext, useState, useCallback, type ReactNode, useEffect, useMemo } from 'react'
 import { getCurrentConfig } from '@/config'
 import { clearActiveInternalWallet, createInternalWallet, getActiveInternalWallet } from "@/lib/crypto/internalWallet.ts"
-import { setChainAdapter } from '@/lib/crypto/cryptoUtils.ts'
+import {setChainAdapter, signMessageInternal} from '@/lib/crypto/cryptoUtils.ts'
 import { aptosAdapter } from '@/lib/crypto/providers/aptosAdapter.ts'
 import type { ChainId, NetworkId, WalletKind } from './wallet/types'
-import { aptosWalletAdapter } from './wallet/adapters/aptosWalletAdapter'
+import { petraWalletAdapter } from './wallet/adapters/petraWalletAdapter.ts'
+import { pontemWalletAdapter } from './wallet/adapters/pontemWalletAdapter'
 import { createAptosWalletConnectAdapter } from './wallet/adapters/aptosWalletConnectAdapter'
 
 function createAdaptersForChain(chain: ChainId) {
-  if (chain !== 'aptos') return [] as typeof aptosWalletAdapter[]
+  if (chain !== 'aptos') return [] as typeof petraWalletAdapter[]
   const wc = createAptosWalletConnectAdapter()
-  return [aptosWalletAdapter, wc]
+  return [petraWalletAdapter, pontemWalletAdapter, wc]
 }
 
 // Registry of external wallet adapters by chain
@@ -33,6 +34,8 @@ export interface WalletContextType {
   switchNetwork: (network: NetworkId) => void
   setWalletKind: (kind: WalletKind | null) => void
   setExternalProviderId: (id: string | null) => void
+
+  signMessage: (dataToSign:string, message: string) => Promise<Uint8Array>
 }
 
 const WalletContext = createContext<WalletContextType | null>(null)
@@ -207,6 +210,27 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setExternalProviderIdState(id)
   }, [])
 
+  const signMessage = useCallback(async (dataToSign:string, message: string): Promise<Uint8Array> => {
+    if (!walletKind) {
+      throw new Error('No wallet connected')
+    }
+
+    if (walletKind === 'internal') {
+      const internal = await getActiveInternalWallet()
+      if (!internal) throw new Error('No active internal wallet')
+      return await signMessageInternal(internal, dataToSign)
+    }
+
+    // External wallet
+    const adapter = activeAdapter
+    if (!adapter) throw new Error('No active external wallet adapter')
+    if (!adapter.signMessage) {
+      throw new Error(`The selected wallet adapter (${adapter.name}) does not support message signing`)
+    }
+    return await adapter.signMessage(dataToSign, message)
+  }, [walletKind, activeAdapter])
+
+
   return (
     <WalletContext.Provider value={{
       walletAddress,
@@ -221,6 +245,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       switchNetwork,
       setWalletKind,
       setExternalProviderId,
+
+      signMessage
     }}>
       {children}
     </WalletContext.Provider>

@@ -30,7 +30,7 @@ const ConfirmDelivery: React.FC<ConfirmDeliveryProps> = ({
                                                            onDeliveryConfirmed,
                                                            onCancel
                                                          }) => {
-  const {walletAddress} = useWallet()
+  const {walletAddress, signMessage} = useWallet()
   const [shipmentCode, setShipmentCode] = useState('')
   const [customInfo, setCustomInfo] = useState('')
 
@@ -98,7 +98,7 @@ const ConfirmDelivery: React.FC<ConfirmDeliveryProps> = ({
     try {
       // Sign the product seed with wallet (chain adapter) to generate the seller's key pair
       const dataToSign = signPrefix + atob(order.productSeed)
-      const signedBytes = await getChainAdapter().signMessageWithWallet(
+      const signedBytes = await signMessage(
         dataToSign,
         "Sign seed for delivery payload encryption"
       )

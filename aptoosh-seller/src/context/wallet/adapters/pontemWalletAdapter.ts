@@ -1,17 +1,24 @@
 import type { WalletAdapter, NetworkId } from "../types";
 
 function provider(): any | null {
-  return (window as any)?.aptos ?? null; // Petra-compatible
+  const w = window as any;
+  // Prefer Pontem's own namespace if present
+  if (w?.pontem) return w.pontem;
+  // Some wallets also expose via the Aptos Wallet Standard under window.aptos
+  const a = w?.aptos;
+  if (!a) return null;
+  if (a?.isPontem || a?.name === 'Pontem' || a?.provider?.name === 'Pontem') return a;
+  return null;
 }
 
-export const aptosWalletAdapter: WalletAdapter = {
+export const pontemWalletAdapter: WalletAdapter = {
   chain: 'aptos',
-  name: 'Petra (browser)',
-  id: 'petra',
+  name: 'Pontem (browser)',
+  id: 'pontem',
 
   isInstalled() {
     const p = provider();
-    return !!(p && (p.isPetra || p.account));
+    return !!(p && (p.isPontem || p.account || p.connect));
   },
 
   async getAddress() {
@@ -19,7 +26,7 @@ export const aptosWalletAdapter: WalletAdapter = {
     if (!p?.account) return null;
     try {
       const a = await p.account();
-      return a?.address ?? null;
+      return a ?? null;
     } catch {
       return null;
     }
@@ -38,10 +45,10 @@ export const aptosWalletAdapter: WalletAdapter = {
 
   async connect(opts?: { silent?: boolean }) {
     const p = provider();
-    if (!p?.connect) throw new Error('No Aptos wallet provider found (e.g., Petra)');
+    if (!p?.connect) throw new Error('No Pontem wallet provider found');
     await p.connect({ onlyIfTrusted: !!opts?.silent });
     const a = await p.account();
-    return a?.address ?? null;
+    return a ?? null;
   },
 
   async disconnect() {
@@ -52,7 +59,7 @@ export const aptosWalletAdapter: WalletAdapter = {
   onAccountChange(cb) {
     const p = provider();
     if (!p?.onAccountChange) return () => {};
-    p.onAccountChange((acc: any) => cb(acc?.address ?? null));
+    p.onAccountChange((acc: any) => cb(acc ?? null));
     return () => p?.off?.('accountChange');
   },
 
@@ -61,5 +68,16 @@ export const aptosWalletAdapter: WalletAdapter = {
     if (!p?.onNetworkChange) return () => {};
     p.onNetworkChange((n: any) => cb(n?.name ?? null));
     return () => p?.off?.('networkChange');
+  },
+
+  async signMessage(dataToSign: string): Promise<Uint8Array> {
+    const p = provider();
+    if (!p?.signMessage) throw new Error('Pontem wallet does not support signMessage');
+    const res = await p.signMessage({
+      message: dataToSign,
+      nonce: '-',
+    });
+    console.log("SignMessageResponse ",res);
+    return res.signature;
   },
 };

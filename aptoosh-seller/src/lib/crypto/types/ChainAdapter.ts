@@ -11,10 +11,7 @@ export interface ChainAdapter {
 
   accountToMnemonic(internal: InternalAccount): string | undefined;
 
-  signMessage(internal: InternalAccount, message: string): Promise<Uint8Array>;
-
-  // Wallet-based (external wallet, e.g., Petra on Aptos)
-  signMessageWithWallet(dataToSign: string, humanReadableMessage: string): Promise<Uint8Array>;
+  signMessageInternal(internal: InternalAccount, message: string): Promise<Uint8Array>;
 
   // Application-specific hooks (keep parameters generic for swappable chains)
   /**

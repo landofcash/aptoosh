@@ -9,6 +9,17 @@ let connectedSession: any | null = null;
 let connectedAddress: string | null = null;
 let currentNetwork: NetworkId | null = null;
 
+// Subscribers for reactive updates
+const accountSubscribers: Array<(addr: string | null) => void> = [];
+const networkSubscribers: Array<(net: NetworkId | null) => void> = [];
+
+function emitAccount(addr: string | null) {
+  for (const cb of accountSubscribers) try { cb(addr); } catch {}
+}
+function emitNetwork(net: NetworkId | null) {
+  for (const cb of networkSubscribers) try { cb(net); } catch {}
+}
+
 function aptosChainsFor(network: NetworkId | null) {
   const n = network ?? "testnet";
   return [`aptos:${n}`];
@@ -37,6 +48,16 @@ async function ensureClient(projectId: string) {
 export function createAptosWalletConnectAdapter(): WalletAdapter {
   const walletConnectProjectId = getCurrentConfig().walletConnectProjectId;
   currentNetwork = getCurrentConfig().name;
+
+  // Keep the currentNetwork in sync with app-level selection via localStorage changes
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', (ev) => {
+      if (ev.key === 'network') {
+        currentNetwork = (ev.newValue as NetworkId) || currentNetwork;
+        emitNetwork(currentNetwork);
+      }
+    });
+  }
 
   return {
     chain: 'aptos',
@@ -95,18 +116,39 @@ export function createAptosWalletConnectAdapter(): WalletAdapter {
       }
 
       connectedAddress = extractAddressFromSession(connectedSession);
+      emitAccount(connectedAddress);
+      emitNetwork(currentNetwork);
 
       // Wire session update/delete events once
       signClient!.on('session_update', ({ topic, params }) => {
         if (!connectedSession || connectedSession.topic !== topic) return;
         connectedSession = { ...connectedSession, namespaces: params.namespaces };
         connectedAddress = extractAddressFromSession(connectedSession);
+        emitAccount(connectedAddress);
+      });
+
+      // Receive account/network changes from wallets
+      signClient!.on('session_event', ({ topic, params }) => {
+        if (!connectedSession || connectedSession.topic !== topic) return;
+        const name = (params as any)?.event?.name as string | undefined;
+        const chainId = (params as any)?.chainId as string | undefined;
+        if (name === 'accountsChanged') {
+          // Re-extract from session
+          connectedAddress = extractAddressFromSession(connectedSession);
+          emitAccount(connectedAddress);
+        }
+        if (name === 'networkChanged' && chainId && chainId.startsWith('aptos:')) {
+          const net = chainId.split(':')[1] as NetworkId;
+          currentNetwork = net;
+          emitNetwork(currentNetwork);
+        }
       });
 
       signClient!.on('session_delete', ({ topic }) => {
         if (connectedSession && connectedSession.topic === topic) {
           connectedSession = null;
           connectedAddress = null;
+          emitAccount(null);
         }
       });
 
@@ -124,14 +166,22 @@ export function createAptosWalletConnectAdapter(): WalletAdapter {
     },
 
     onAccountChange(cb) {
-      // Polling-based emit to propagate updates to the app
-      const interval = setInterval(() => cb(connectedAddress), 1000);
-      return () => clearInterval(interval);
+      accountSubscribers.push(cb);
+      // Fire immediately with the current state
+      try { cb(connectedAddress); } catch {}
+      return () => {
+        const idx = accountSubscribers.indexOf(cb);
+        if (idx >= 0) accountSubscribers.splice(idx, 1);
+      };
     },
 
     onNetworkChange(cb) {
-      cb(currentNetwork ?? null);
-      return () => {};
+      networkSubscribers.push(cb);
+      try { cb(currentNetwork ?? null); } catch {}
+      return () => {
+        const idx = networkSubscribers.indexOf(cb);
+        if (idx >= 0) networkSubscribers.splice(idx, 1);
+      };
     },
   };
 }

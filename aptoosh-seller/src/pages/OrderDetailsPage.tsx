@@ -140,7 +140,7 @@ const ViewContentModal: React.FC<ViewContentModalProps> = ({isOpen, onClose, tit
 function OrderDetailsPage() {
   const location = useLocation()
 
-  const {walletAddress} = useWallet()
+  const {walletAddress, signMessage} = useWallet()
   const order = location.state?.order as Order | undefined
 
   // Encrypted delivery payload from box (loaded automatically)
@@ -226,9 +226,9 @@ function OrderDetailsPage() {
     setParsedOrderData(null)
 
     try {
-      // Sign the product seed with wallet (chain adapter) to generate the seller's key pair
+      // Sign the product seed with the wallet to generate the seller's key pair
       const dataToSign = signPrefix + atob(order.productSeed)
-      const signedBytes = await getChainAdapter().signMessageWithWallet(
+      const signedBytes = await signMessage(
         dataToSign,
         "Sign seed for delivery info decryption"
       )

@@ -15,12 +15,6 @@ export async function signMessageAptos(internalAccount: InternalAccount, message
   return sig.toUint8Array();
 }
 
-export async function signMessageWithWalletAptos(data: string, message: string): Promise<Uint8Array> {
-  const messageBytes = new TextEncoder().encode(data);
-  console.log("signMessageWithWalletAptos", data, message);
-  //TODO: Implement this
-  return messageBytes;
-}
 
 export function toAccountAptos(internal: InternalAccount): Account {
   const sk = new Ed25519PrivateKey(internal.sk);
@@ -68,3 +62,4 @@ export async function getStorageDataAptos(storageKey: string): Promise<GetStorag
 
 const bytesToHex = (bytes: Uint8Array): string =>
   Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+
