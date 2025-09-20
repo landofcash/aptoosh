@@ -1,31 +1,39 @@
 import type {ChainAdapter} from "@/lib/crypto/types/ChainAdapter";
 import type {GetStorageResult} from "@/lib/crypto/types/GetStorageResult";
 import * as aptosUtils from "@/lib/aptos/aptosUtils.ts";
+import type {EntryFunctionPayload, NetworkId, WalletAdapter} from "@/context/wallet/types.ts";
+import {getCurrentConfig} from "@/config";
 
 export const aptosAdapter: ChainAdapter = {
   name: "aptos",
-
-  // Local/custodial basics
   generateAccount: aptosUtils.generateAccountAptos,
   accountFromMnemonic: aptosUtils.accountFromMnemonicAptos,
   accountToMnemonic: aptosUtils.accountToMnemonicAptos,
   signMessageInternal: aptosUtils.signMessageAptos,
 
   async uploadCatalogueUrlToBlockchain(
-    catalogueUrl: string,
+    walletAdapter: WalletAdapter,
     seed: string,
     sellerPubKey: string,
-    senderAddress: string
+    catalogueUrl: string
   ): Promise<string> {
-    console.log('Upload catalogue:', {catalogueUrl, seed, sellerPubKey, senderAddress});
-    return "TEST_TX_ID_UPLOAD_CATALOGUE";
+    if (!seed || seed.length !== 22) {
+      throw new Error("Seed must be a 22-character string");
+    }
+    const payload: EntryFunctionPayload = {
+      function: `${getCurrentConfig().account}::aptoosh::create_product`,
+      type_arguments: [],
+      arguments: [seed, sellerPubKey, catalogueUrl]
+    };
+    const result = await walletAdapter.signAndSubmit(payload);
+    return result.hash;
   },
 
   async deleteProductBoxOnBlockchain(
-    seed: string,
-    senderAddress: string
+    walletAdapter: WalletAdapter,
+    seed: string
   ): Promise<string> {
-    console.log('Delete product:', {seed, senderAddress});
+    console.log(`Delete product: ${seed} wallet ${walletAdapter.name}`);
     return "TEST_TX_ID_DELETE_PRODUCT";
   },
 
@@ -70,5 +78,15 @@ export const aptosAdapter: ChainAdapter = {
 
   async resolveNameToAddress(name: string): Promise<string | null> {
     return name;
+  },
+
+  mapNetworkName(name?: string): NetworkId {
+    if (!name) throw new Error('Network name is required');
+    const n = name.toLowerCase();
+    if (n.includes('main')) return 'mainnet';
+    if (n.includes('test')) return 'testnet';
+    if (n.includes('dev')) return 'devnet';
+    if (n.includes('local')) return 'localnet';
+    return name as NetworkId;
   }
 };

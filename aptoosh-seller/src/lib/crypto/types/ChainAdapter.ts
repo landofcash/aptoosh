@@ -1,5 +1,6 @@
 import type {InternalAccount} from "@/lib/crypto/types/InternalAccount.ts";
 import type {GetStorageResult} from "@/lib/crypto/types/GetStorageResult.ts";
+import type {NetworkId, WalletAdapter} from "@/context/wallet/types.ts";
 
 export interface ChainAdapter {
   readonly name: string; // e.g., 'aptos'
@@ -16,28 +17,28 @@ export interface ChainAdapter {
   // Application-specific hooks (keep parameters generic for swappable chains)
   /**
    * Uploads a product catalogue URL to the blockchain
-   * @param catalogueUrl The URL where the product catalogue JSON is hosted
+   * @param walletAdapter
    * @param seed The 22-character base64-encoded UUID seed
    * @param sellerPubKey The seller's public key (base64 encoded)
-   * @param senderAddress The sender's chain address
+   * @param catalogueUrl The URL where the product catalogue JSON is hosted
    * @returns The transaction ID
    */
   uploadCatalogueUrlToBlockchain(
-    catalogueUrl: string,
+    walletAdapter: WalletAdapter,
     seed: string,
     sellerPubKey: string,
-    senderAddress: string
+    catalogueUrl: string
   ): Promise<string>
 
   /**
    * Deletes a product box from the blockchain using the cleanupProduct method
+   * @param walletAdapter
    * @param seed The 22-character base64-encoded seed
-   * @param senderAddress The sender's chain address
    * @returns The transaction ID
    */
   deleteProductBoxOnBlockchain(
-    seed: string,
-    senderAddress: string
+    walletAdapter: WalletAdapter,
+    seed: string
   ): Promise<string>
 
   /**
@@ -89,4 +90,6 @@ export interface ChainAdapter {
    * @returns The name or null if not found
    */
   resolveNameToAddress(name: string): Promise<string | null>
+
+  mapNetworkName(name?: string): NetworkId
 }

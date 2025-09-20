@@ -27,7 +27,7 @@ import AptosLogo from "@/components/Crypto/aptos/AptosLogo.tsx";
 import {getChainAdapter} from "@/lib/crypto/cryptoUtils.ts";
 
 function AddProductCataloguePage() {
-  const {walletAddress, signMessage} = useWallet()
+  const {walletAddress, signMessage, walletAdapter} = useWallet()
   const navigate = useNavigate()
   const location = useLocation();
   const state = location.state as { url?: string };
@@ -121,12 +121,13 @@ function AddProductCataloguePage() {
   }
 
   const handleUploadToBlockchain = async () => {
-    if (!walletAddress || !catalogueUrl || !seed || !sellerPubKey) return
+    if (!walletAddress || !catalogueUrl || !seed || !sellerPubKey || !walletAdapter) return
     setIsUploading(true)
     setError(null)
 
     try {
-      const newTxId = await getChainAdapter().uploadCatalogueUrlToBlockchain(catalogueUrl, seed, sellerPubKey, walletAddress)
+      const newTxId = await getChainAdapter()
+        .uploadCatalogueUrlToBlockchain(walletAdapter, seed, sellerPubKey, catalogueUrl)
       setTxId(newTxId)
       setIsConfirmModalVisible(false)
       setIsSuccessModalVisible(true)

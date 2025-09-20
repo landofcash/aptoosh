@@ -5,7 +5,6 @@ module aptoosh::aptoosh {
     use aptoosh::products;
     use aptoosh::escrow;
 
-
     // ---- Escrow wrappers ----
     public entry fun init_escrow(admin: &signer, seed: vector<u8>) { escrow::init_escrow(admin, seed); }
 
@@ -14,10 +13,11 @@ module aptoosh::aptoosh {
     // ---- Products wrappers ----
     public entry fun init_products(publisher: &signer) { products::init_products(publisher); }
 
-    public entry fun create_product(shop: &signer, seed: vector<u8>, url: string::String) {
+    public entry fun create_product(shop: &signer, seed: vector<u8>, seller_pubkey:vector<u8>, url: string::String) {
         products::create_product(
             shop,
             seed,
+            seller_pubkey,
             url
         );
     }

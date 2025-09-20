@@ -143,7 +143,7 @@ function OrderDetailsPage() {
   const {walletAddress, signMessage} = useWallet()
   const order = location.state?.order as Order | undefined
 
-  // Encrypted delivery payload from box (loaded automatically)
+  // Encrypted delivery payload (loaded automatically)
   const [encryptedPayloadFromBox, setEncryptedPayloadFromBox] = useState<string | null>(null)
   const [isLoadingPayloadFromBox, setIsLoadingPayloadFromBox] = useState(false)
   const [payloadLoadError, setPayloadLoadError] = useState<string | null>(null)
@@ -233,11 +233,11 @@ function OrderDetailsPage() {
         "Sign seed for delivery info decryption"
       )
 
-      // Generate seller's key pair from signed data
+      // Generate the seller's key pair from signed data
       const signedBase64 = btoa(String.fromCharCode(...new Uint8Array(signedBytes)))
       const keyPair = await generateKeyPairFromB64(signedBase64)
 
-      // Decrypt the symmetric key using seller's private key
+      // Decrypt the symmetric key using the seller's private key
       const decryptedSymKey = await decryptWithECIES(keyPair.privateKey, order.encryptedSymKeySeller)
 
       // Decrypt the delivery payload using the decrypted symmetric key
@@ -268,7 +268,7 @@ function OrderDetailsPage() {
     }
   }
 
-  // Function to download file
+  // Function to download the file
   const downloadFile = (content: string, filename: string, mimeType: string) => {
     const blob = new Blob([content], {type: mimeType})
     const url = URL.createObjectURL(blob)

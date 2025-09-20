@@ -1,6 +1,6 @@
 // utils/internalWallet.ts
 import {get, set} from 'idb-keyval'
-import {accountFromMnemonic, generateAccount} from "@/lib/crypto/cryptoUtils.ts";
+import {accountFromMnemonic, generateAccount, accountToMnemonic} from "@/lib/crypto/cryptoUtils.ts";
 import type {InternalAccount} from "@/lib/crypto/types/InternalAccount.ts";
 import {APP_KEY_PREFIX} from "@/config.ts";
 
@@ -28,6 +28,11 @@ export async function getActiveInternalWallet(): Promise<InternalAccount | null>
 
 export async function setActiveInternalWallet(addr: string) {
   await set(ACTIVE_WALLET_KEY, addr)
+}
+
+export async function getActiveInternalAddress(): Promise<string | null> {
+  const acc = await getActiveInternalWallet();
+  return acc?.addr ?? null;
 }
 
 export async function loadAllInternalWallets(): Promise<StoredAccount[]> {
@@ -65,11 +70,12 @@ export async function importInternalWallet(mnemonic: string): Promise<InternalAc
     wallets.push(stored);
     await set(WALLET_KEY, wallets);
   }
+  await set(ACTIVE_WALLET_KEY, acc.addr);
   return acc;
 }
 
 export function exportInternalWallet(internalAccount: InternalAccount): string {
-  return internalAccount.mnemonic || "";
+  try { return accountToMnemonic(internalAccount); } catch { return internalAccount.mnemonic || ""; }
 }
 
 export async function clearInternalWallets() {

@@ -9,20 +9,21 @@ export interface ApiResponse<T> {
 
 
 /**
- * Interface for cached product data that includes box information
+ * Interface for cached product data
  */
 export interface ProductCacheEntry {
   seed: string;
   version: number;
   shopWallet: string;
   productsUrl?: string;
+  sellerPubKey?: string;
   priceToken?: bigint;
   price?: bigint;
   description?: string;
 }
 
 /**
- * Interface for cached order data that includes box information
+ * Interface for cached order data
  */
 export interface OrderCacheEntry {
   version: bigint;

@@ -1,14 +1,17 @@
 export type ChainId = 'aptos' | string;
 export type NetworkId = 'mainnet' | 'testnet' | 'devnet' | 'local' | string;
 export type WalletKind = 'external' | 'internal';
-
-// Unique id of external wallet provider (e.g., 'petra', 'walletconnect')
 export type WalletProviderId = 'petra' | 'pontem' | 'walletconnect' | string;
+
+export type EntryFunctionPayload = {
+  function: string;
+  type_arguments?: string[];
+  arguments: (string | number)[];
+};
 
 export interface WalletAdapter {
   readonly chain: ChainId;
   readonly name: string;
-  // Unique provider id within a chain
   readonly id: WalletProviderId;
 
   // Optional: detect if the adapter can be used on this device/session (e.g., window provider installed)
@@ -23,5 +26,6 @@ export interface WalletAdapter {
   onAccountChange?(cb: (address: string | null) => void): () => void;
   onNetworkChange?(cb: (network: NetworkId | null) => void): () => void;
 
-  signMessage?(dataToSign:string, message:string): Promise<Uint8Array>;
+  signMessage(dataToSign: string, message?: string): Promise<Uint8Array>;
+  signAndSubmit(payload: EntryFunctionPayload): Promise<{ hash: string }>;
 }

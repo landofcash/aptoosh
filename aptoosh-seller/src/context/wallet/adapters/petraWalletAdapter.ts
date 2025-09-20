@@ -1,7 +1,12 @@
-import type { WalletAdapter, NetworkId } from "../types";
+import type { WalletAdapter, NetworkId, EntryFunctionPayload } from "../types";
+import type { PetraWalletProvider, AptosAccount } from "@/types/aptos-wallet";
+import {hexToBytes} from "@/utils/encoding.ts";
+import {mapNetworkName} from "@/lib/crypto/cryptoUtils.ts";
+import {getAptosClient} from "@/lib/aptos/aptosClient.ts";
 
-function provider(): any | null {
-  return (window as any)?.aptos ?? null; // Petra-compatible
+
+function provider(): PetraWalletProvider | null {
+  return window?.aptos ?? null; // Petra-compatible
 }
 
 export const petraWalletAdapter: WalletAdapter = {
@@ -30,7 +35,8 @@ export const petraWalletAdapter: WalletAdapter = {
     if (!p?.network) return null;
     try {
       const n = await p.network();
-      return (n?.name as NetworkId) ?? null;
+      if (!n) return null;
+      return mapNetworkName(n.name);
     } catch {
       return null;
     }
@@ -52,23 +58,48 @@ export const petraWalletAdapter: WalletAdapter = {
   onAccountChange(cb) {
     const p = provider();
     if (!p?.onAccountChange) return () => {};
-    p.onAccountChange((acc: any) => cb(acc?.address ?? null));
+    p.onAccountChange((acc: AptosAccount | null) => cb(acc?.address ?? null));
     return () => p?.off?.('accountChange');
   },
 
   onNetworkChange(cb) {
     const p = provider();
     if (!p?.onNetworkChange) return () => {};
-    p.onNetworkChange((n: any) => cb(n?.name ?? null));
+    p.onNetworkChange((n) => {
+      if (!n) return;
+      cb(mapNetworkName(n.name))
+    });
     return () => p?.off?.('networkChange');
   },
 
-  async signMessage(dataToSign: string, message: string): Promise<Uint8Array> {
-    const res = await provider().signMessage({
-      message: dataToSign, // The message to be signed and displayed to the user
-      nonce: "-", // A nonce the dapp should generate
+  async signMessage(dataToSign: string): Promise<Uint8Array> {
+    const p = provider();
+    if (!p?.signMessage) throw new Error('Aptos wallet does not support signMessage');
+    const res = await p.signMessage({
+      message: dataToSign,
+      nonce: '-',
     });
-    console.log("SignMessageResponse ",res);
-    return res.signature;
+    return typeof res.signature === 'string' ? hexToBytes(res.signature) : res.signature;
+  },
+
+  async signAndSubmit(payload: EntryFunctionPayload): Promise<{ hash: string }> {
+    const p = provider();
+    if (!p) throw new Error('No Aptos wallet provider (Petra) found');
+
+    const tx = {
+      type: 'entry_function_payload',
+      function: payload.function,
+      type_arguments: payload.type_arguments ?? [],
+      arguments: payload.arguments,
+    };
+
+    const response = await p.signAndSubmitTransaction(tx);
+    const aptos = getAptosClient();
+    try {
+      await aptos.waitForTransaction({ transactionHash: response.result.hash });
+    } catch (error) {
+      console.error(error);
+    }
+    return { hash: response.result.hash };
   }
 };

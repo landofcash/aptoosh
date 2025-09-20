@@ -1,5 +1,5 @@
-import { Aptos, AptosConfig, Network } from '@aptos-labs/ts-sdk';
-import { getCurrentConfig } from '@/config';
+import {Aptos, AptosConfig, Network} from '@aptos-labs/ts-sdk';
+import {getCurrentConfig} from '@/config';
 
 /**
  * Returns a preconfigured Aptos client bound to the currently selected network.
@@ -8,7 +8,7 @@ import { getCurrentConfig } from '@/config';
 export function getAptosClient() {
   const cfg = getCurrentConfig().aptos;
   const net = getCurrentConfig().name as Network;
-  const aptos = new Aptos(
+  return new Aptos(
     new AptosConfig({
       fullnode: cfg.nodeUrl,
       indexer: cfg.indexerGraphqlUrl,
@@ -16,5 +16,4 @@ export function getAptosClient() {
       network: net,
     })
   );
-  return aptos;
 }

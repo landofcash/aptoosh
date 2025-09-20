@@ -4,7 +4,7 @@ version = "1.0.0"
 authors = []
 
 [addresses]
-aptoosh = "0x65662b9585f1c7ef8cb83ca0ecf7d63345530448a93a550709c4fb375f575502"
+aptoosh = "0x21ea52c02b58b1792175feac62eb407c7a0503e72e33ba0e0832793cb744149e"
 
 [dev-addresses]
 aptoosh = "0xa11ce"

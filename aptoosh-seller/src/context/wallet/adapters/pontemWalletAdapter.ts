@@ -1,13 +1,11 @@
-import type { WalletAdapter, NetworkId } from "../types";
+import type {WalletAdapter, NetworkId, EntryFunctionPayload} from "../types";
+import type {PontemWalletProvider} from "@/types/aptos-wallet";
+import {hexToBytes} from "@/utils/encoding.ts";
+import {mapNetworkName} from "@/lib/crypto/cryptoUtils.ts";
+import {getCurrentConfig} from "@/config.ts";
 
-function provider(): any | null {
-  const w = window as any;
-  // Prefer Pontem's own namespace if present
-  if (w?.pontem) return w.pontem;
-  // Some wallets also expose via the Aptos Wallet Standard under window.aptos
-  const a = w?.aptos;
-  if (!a) return null;
-  if (a?.isPontem || a?.name === 'Pontem' || a?.provider?.name === 'Pontem') return a;
+function provider(): PontemWalletProvider | null {
+  if (window?.pontem) return window.pontem;
   return null;
 }
 
@@ -21,7 +19,7 @@ export const pontemWalletAdapter: WalletAdapter = {
     return !!(p && (p.isPontem || p.account || p.connect));
   },
 
-  async getAddress() {
+  async getAddress():Promise<string | null> {
     const p = provider();
     if (!p?.account) return null;
     try {
@@ -37,7 +35,8 @@ export const pontemWalletAdapter: WalletAdapter = {
     if (!p?.network) return null;
     try {
       const n = await p.network();
-      return (n?.name as NetworkId) ?? null;
+      if (!n) return null;
+      return mapNetworkName(n.name);
     } catch {
       return null;
     }
@@ -46,7 +45,7 @@ export const pontemWalletAdapter: WalletAdapter = {
   async connect(opts?: { silent?: boolean }) {
     const p = provider();
     if (!p?.connect) throw new Error('No Pontem wallet provider found');
-    await p.connect({ onlyIfTrusted: !!opts?.silent });
+    await p.connect({onlyIfTrusted: !!opts?.silent});
     const a = await p.account();
     return a ?? null;
   },
@@ -58,15 +57,21 @@ export const pontemWalletAdapter: WalletAdapter = {
 
   onAccountChange(cb) {
     const p = provider();
-    if (!p?.onAccountChange) return () => {};
-    p.onAccountChange((acc: any) => cb(acc ?? null));
+    if (!p?.onAccountChange) return () => {
+    };
+    p.onAccountChange((acc: string | null) => cb(acc ?? null));
     return () => p?.off?.('accountChange');
   },
 
   onNetworkChange(cb) {
     const p = provider();
-    if (!p?.onNetworkChange) return () => {};
-    p.onNetworkChange((n: any) => cb(n?.name ?? null));
+    if (!p?.onNetworkChange) return () => {
+    };
+    p.onNetworkChange((n) => {
+      if (!n) return;
+      console.log('network change', n);
+      cb(mapNetworkName(n.name))
+    });
     return () => p?.off?.('networkChange');
   },
 
@@ -77,7 +82,36 @@ export const pontemWalletAdapter: WalletAdapter = {
       message: dataToSign,
       nonce: '-',
     });
-    console.log("SignMessageResponse ",res);
-    return res.signature;
+    return typeof res.signature === 'string' ? hexToBytes(res.signature) : res.signature;
+  },
+
+  async signAndSubmit(payload: EntryFunctionPayload): Promise<{ hash: string }> {
+    const p = provider();
+    if (!p?.signAndSubmit) throw new Error('Pontem wallet does not support signAndSubmit');
+
+
+    const desired = (getCurrentConfig().name as NetworkId);
+
+    const n = await p.network?.();
+    if (n?.name) {
+      const walletNet = mapNetworkName(n.name);
+      if (walletNet && walletNet !== desired) {
+        throw new Error(
+          `Pontem wallet is connected to "${walletNet}" but the app is set to "${desired}". ` +
+          `Please switch the network in Pontem and try again.`
+        );
+      }
+    }
+
+    const tx = {
+      type: 'entry_function_payload',
+      function: payload.function,
+      type_arguments: payload.type_arguments ?? [],
+      arguments: payload.arguments,
+    };
+
+    const resp = await p.signAndSubmit(tx);
+    if (!resp?.result) throw new Error('Pontem returned no result');
+    return { hash: resp.result.hash };
   },
 };

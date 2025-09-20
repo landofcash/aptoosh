@@ -78,18 +78,18 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
     setTransactionError(null)
 
     try {
-      // Sign the product seed with wallet (chain adapter) to generate the seller's key pair
+      // Sign the product seed with the wallet (chain adapter) to generate the seller's key pair
       const dataToSign = signPrefix + atob(order.productSeed)
       const signedBytes = await signMessage(
         dataToSign,
         "Sign seed for delivery refusal payload encryption"
       )
 
-      // Generate seller's key pair from signed data
+      // Generate the seller's key pair from signed data
       const signedBase64 = btoa(String.fromCharCode(...new Uint8Array(signedBytes)))
       const keyPair = await generateKeyPairFromB64(signedBase64)
 
-      // Decrypt the symmetric AES key using seller's private key
+      // Decrypt the symmetric AES key using the seller's private key
       const decryptedSymKey = await decryptWithECIES(keyPair.privateKey, order.encryptedSymKeySeller)
 
       // Prepare the delivery payload (customInfo only for refusal)

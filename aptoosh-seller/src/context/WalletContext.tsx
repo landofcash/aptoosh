@@ -1,26 +1,28 @@
-import { createContext, useContext, useState, useCallback, type ReactNode, useEffect, useMemo } from 'react'
-import { getCurrentConfig } from '@/config'
-import { clearActiveInternalWallet, createInternalWallet, getActiveInternalWallet } from "@/lib/crypto/internalWallet.ts"
-import {setChainAdapter, signMessageInternal} from '@/lib/crypto/cryptoUtils.ts'
-import { aptosAdapter } from '@/lib/crypto/providers/aptosAdapter.ts'
-import type { ChainId, NetworkId, WalletKind } from './wallet/types'
-import { petraWalletAdapter } from './wallet/adapters/petraWalletAdapter.ts'
-import { pontemWalletAdapter } from './wallet/adapters/pontemWalletAdapter'
-import { createAptosWalletConnectAdapter } from './wallet/adapters/aptosWalletConnectAdapter'
+import {createContext, useContext, useState, useCallback, type ReactNode, useEffect, useMemo} from 'react'
+import {getCurrentConfig} from '@/config'
+import {getActiveInternalWallet} from "@/lib/crypto/internalWallet.ts"
+import {setChainAdapter} from '@/lib/crypto/cryptoUtils.ts'
+import {aptosAdapter} from '@/lib/crypto/providers/aptosAdapter.ts'
+import type {ChainId, NetworkId, WalletKind, WalletAdapter} from './wallet/types'
+import {petraWalletAdapter} from './wallet/adapters/petraWalletAdapter.ts'
+import {pontemWalletAdapter} from './wallet/adapters/pontemWalletAdapter'
+import {createAptosWalletConnectAdapter} from './wallet/adapters/aptosWalletConnectAdapter'
+import {internalWalletAdapter} from './wallet/adapters/internalWalletAdapter'
 
-function createAdaptersForChain(chain: ChainId) {
-  if (chain !== 'aptos') return [] as typeof petraWalletAdapter[]
+function createAdaptersForChain(chain: ChainId): WalletAdapter[] {
+  if (chain !== 'aptos') return []
   const wc = createAptosWalletConnectAdapter()
   return [petraWalletAdapter, pontemWalletAdapter, wc]
 }
 
 // Registry of external wallet adapters by chain
-const walletAdapters: Record<ChainId, ReturnType<typeof createAdaptersForChain>> = {
+const walletAdapters: Record<ChainId, WalletAdapter[]> = {
   aptos: createAdaptersForChain('aptos'),
 }
 
 export interface WalletContextType {
   walletAddress: string | null
+  walletAdapter: WalletAdapter | null
   network: NetworkId
   chain: ChainId
   walletKind: WalletKind | null
@@ -35,12 +37,12 @@ export interface WalletContextType {
   setWalletKind: (kind: WalletKind | null) => void
   setExternalProviderId: (id: string | null) => void
 
-  signMessage: (dataToSign:string, message: string) => Promise<Uint8Array>
+  signMessage: (dataToSign: string, message: string) => Promise<Uint8Array>
 }
 
 const WalletContext = createContext<WalletContextType | null>(null)
 
-export function WalletProvider({ children }: { children: ReactNode }) {
+export function WalletProvider({children}: { children: ReactNode }) {
   const [walletAddress, setWalletAddress] = useState<string | null>(null)
   const [walletKind, setWalletKind] = useState<WalletKind | null>(null)
   const [chain, setChain] = useState<ChainId>(() => (localStorage.getItem('chain') as ChainId) || 'aptos')
@@ -75,7 +77,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, [adapters, externalProviderId])
 
   const availableExternalProviders = useMemo(() => {
-    return (adapters || []).map(a => ({ id: a.id, name: a.name, installed: a.isInstalled ? a.isInstalled() : true }))
+    return (adapters || []).map(a => ({id: a.id, name: a.name, installed: a.isInstalled ? a.isInstalled() : true}))
   }, [adapters])
 
   // Attempt silent reconnect on the load or when chain/provider changes
@@ -100,7 +102,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           const candidates = activeAdapter ? [activeAdapter, ...adapters.filter(a => a.id !== activeAdapter.id)] : adapters
           for (const a of candidates) {
             try {
-              const addr = await a.connect({ silent: true })
+              const addr = await a.connect({silent: true})
               if (addr) {
                 setWalletAddress(addr)
                 setWalletKind('external')
@@ -146,17 +148,21 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   }, [activeAdapter, walletKind])
 
-  const connect = useCallback(async (opts?: { kind?: WalletKind; chain?: ChainId; providerId?: string; silent?: boolean }) => {
+  const connect = useCallback(async (opts?: {
+    kind?: WalletKind;
+    chain?: ChainId;
+    providerId?: string;
+    silent?: boolean
+  }) => {
     try {
       const targetKind = opts?.kind ?? 'external'
       const targetChain = opts?.chain ?? chain
       const desiredProviderId = opts?.providerId ?? externalProviderId ?? undefined
 
       if (targetKind === 'internal') {
-        let acc = await getActiveInternalWallet()
-        if (!acc) acc = await createInternalWallet()
-        if (acc) {
-          setWalletAddress(acc.addr.toString())
+        const addr = await internalWalletAdapter.connect({silent: !!opts?.silent})
+        if (addr) {
+          setWalletAddress(addr)
           setWalletKind('internal')
         }
         return
@@ -171,7 +177,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       }
       if (!adapter) throw new Error('No wallet adapters available for chain: ' + targetChain)
 
-      const address = await adapter.connect({ silent: !!opts?.silent })
+      const address = await adapter.connect({silent: !!opts?.silent})
       if (address) {
         setWalletAddress(address)
         setWalletKind('external')
@@ -189,7 +195,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       if (walletKind === 'external' && activeAdapter) {
         await activeAdapter.disconnect()
       } else if (walletKind === 'internal') {
-        await clearActiveInternalWallet()
+        await internalWalletAdapter.disconnect()
       }
 
       setWalletAddress(null)
@@ -210,15 +216,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setExternalProviderIdState(id)
   }, [])
 
-  const signMessage = useCallback(async (dataToSign:string, message: string): Promise<Uint8Array> => {
+  const signMessage = useCallback(async (dataToSign: string, message: string): Promise<Uint8Array> => {
     if (!walletKind) {
       throw new Error('No wallet connected')
     }
 
     if (walletKind === 'internal') {
-      const internal = await getActiveInternalWallet()
-      if (!internal) throw new Error('No active internal wallet')
-      return await signMessageInternal(internal, dataToSign)
+      if (!internalWalletAdapter.signMessage) throw new Error('Internal wallet cannot sign messages');
+      return await internalWalletAdapter.signMessage(dataToSign, message)
     }
 
     // External wallet
@@ -234,6 +239,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   return (
     <WalletContext.Provider value={{
       walletAddress,
+      walletAdapter: activeAdapter,
       network,
       chain,
       walletKind,

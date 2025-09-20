@@ -112,11 +112,13 @@ function mapProductToCache(seed: string, p: any): ProductCacheEntry {
   const version = typeof p.version === 'string' ? Number(p.version) : Number(p.version ?? 1);
   const shop = String((p.shop ?? '').toString());
   const url = String((p.products_url ?? '').toString());
+  const seller_pubkey = String((p.seller_pubkey ?? '').toString());
   return {
     seed,
     version: Number.isFinite(version) ? version : 1,
     shopWallet: shop,
     productsUrl: url,
+    sellerPubKey: seller_pubkey,
   };
 }
 

@@ -4,7 +4,7 @@ module aptoosh::products {
     use std::string;
     use aptos_std::table;
     use aptos_framework::account;
-    use aptos_framework::event;    
+    use aptos_framework::event;
 
     friend aptoosh::aptoosh;
 
@@ -25,6 +25,7 @@ module aptoosh::products {
     struct Product has copy, store, drop {
         version: u8,
         shop: address,
+        seller_pubkey: vector<u8>,
         products_url: string::String
     }
 
@@ -62,14 +63,14 @@ module aptoosh::products {
 
     /// Create Product
     public(friend) fun create_product(
-        shop: &signer, seed: vector<u8>, url: string::String
+        shop: &signer, seed: vector<u8>, seller_pubkey:vector<u8>, url: string::String
     ) acquires Products, ProductEvents {
         assert!(seed.length() == SEED_LEN, E_BAD_SEED);
         let store = borrow_global_mut<Products>(@aptoosh);
         assert!(!store.products.contains(copy seed), E_EXISTS);
         store.products.add(
             copy seed,
-            Product { version: 1, shop: signer::address_of(shop), products_url: url }
+            Product { version: 1, shop: signer::address_of(shop), seller_pubkey, products_url: url }
         );
 
         let events = borrow_global_mut<ProductEvents>(@aptoosh);

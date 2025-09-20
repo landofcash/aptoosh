@@ -2,6 +2,7 @@ import type {InternalAccount} from "@/lib/crypto/types/InternalAccount.ts";
 import type {GetStorageResult} from "@/lib/crypto/types/GetStorageResult.ts";
 import type {ChainAdapter} from "@/lib/crypto/types/ChainAdapter.ts";
 import {aptosAdapter} from "@/lib/crypto/providers/aptosAdapter.ts";
+import type {NetworkId} from "@/context/wallet/types.ts";
 
 // Adapter selection (default Aptos). WalletProvider can change it via setChainAdapter.
 let adapter: ChainAdapter = aptosAdapter;
@@ -35,3 +36,8 @@ export function accountToMnemonic(internalAccount: InternalAccount): string {
 export async function getStorageData(storageKey: string): Promise<GetStorageResult> {
   return await adapter.getStorageData(storageKey);
 }
+
+export function mapNetworkName(name: string): NetworkId {
+  return adapter.mapNetworkName(name);
+}
+

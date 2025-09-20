@@ -1,3 +1,5 @@
+import type {NetworkId} from "@/context/wallet/types.ts";
+
 export const APP_VERSION = '0.1.7'
 export const APP_NAME='Aptoosh'
 export const BASE_URL='https://aptoosh.com'
@@ -7,8 +9,6 @@ export const signPrefix = "aptoosh-";
 export const APP_KEY_PREFIX = 'Aptoosh';
 const APTOS_EXPLORER_BASE = 'https://explorer.aptoslabs.com';
 const WALLETCONNECT_PROJECT_ID = '9cec891357250a5edfd42c4723e635be';
-
-export type NetworkId = 'mainnet' | 'testnet' | 'devnet';
 
 // Keep TokenConfig backward-compatible (numeric id) for current UI/helpers
 export interface TokenConfig {
@@ -30,6 +30,7 @@ export interface AptosEndpoints {
 export interface NetworkConfig {
   cdnBasePath: string;
   name: NetworkId;
+  account: string;
   apiUrl: string;
   fileApiUrl:string;
   aptos: AptosEndpoints;
@@ -44,6 +45,7 @@ export interface NetworkConfig {
 const configs: Record<NetworkId, NetworkConfig> = {
   mainnet: {
     name: 'mainnet',
+    account: '0x21ea52c02b58b1792175feac62eb407c7a0503e72e33ba0e0832793cb744149e',
     apiUrl: 'https://sync.aptoosh.com/api/m',
     fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
     cdnBasePath: 'https://aptoosh.b-cdn.net',
@@ -64,6 +66,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
 
   testnet: {
     name: 'testnet',
+    account: '0x21ea52c02b58b1792175feac62eb407c7a0503e72e33ba0e0832793cb744149e',
     apiUrl: 'https://sync.aptoosh.com/api/t',
     fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
     cdnBasePath: 'https://aptoosh.b-cdn.net',
@@ -87,6 +90,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
 
   devnet: {
     name: 'devnet',
+    account: '0x21ea52c02b58b1792175feac62eb407c7a0503e72e33ba0e0832793cb744149e',
     apiUrl: 'https://sync.aptoosh.com/api/d',
     fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
     cdnBasePath: 'https://aptoosh.b-cdn.net',
