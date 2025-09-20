@@ -5,26 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b31442be-9003-4fae-9eb3-d6315332c15b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/components/RefuseDelivery.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/components/RefuseDelivery.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/context/WalletContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/context/WalletContext.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/context/wallet/adapters/aptosWalletConnectAdapter.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/context/wallet/adapters/aptosWalletConnectAdapter.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/context/wallet/adapters/petraWalletAdapter.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/context/wallet/adapters/petraWalletAdapter.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/context/wallet/adapters/pontemWalletAdapter.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/context/wallet/adapters/pontemWalletAdapter.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/context/wallet/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/context/wallet/types.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/lib/aptos/aptosClient.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/lib/aptos/aptosClient.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/cryptoUtils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/cryptoUtils.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/internalWallet.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/internalWallet.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/providers/aptosAdapter.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/providers/aptosAdapter.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/types/ChainAdapter.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/types/ChainAdapter.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/pages/AddProductCataloguePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/pages/AddProductCataloguePage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/pages/OrderDetailsPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/pages/OrderDetailsPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Move.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Move.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sources/aptoosh.move" beforeDir="false" afterPath="$PROJECT_DIR$/sources/aptoosh.move" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sources/products.move" beforeDir="false" afterPath="$PROJECT_DIR$/sources/products.move" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-sync/src/aptosSync.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-sync/src/aptosSync.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-sync/src/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-sync/src/types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/components/ProductCatalogueList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/components/ProductCatalogueList.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -128,7 +109,7 @@
       <workItem from="1757818328574" duration="298000" />
       <workItem from="1757869992133" duration="15892000" />
       <workItem from="1757972774821" duration="14103000" />
-      <workItem from="1758370045419" duration="10455000" />
+      <workItem from="1758370045419" duration="10894000" />
     </task>
     <servers />
   </component>

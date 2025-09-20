@@ -9,7 +9,7 @@ import CopyableField from './CopyableField'
 import {getChainAdapter} from "@/lib/crypto/cryptoUtils.ts";
 
 const ProductCatalogueList: React.FC = () => {
-  const {walletAddress} = useWallet()
+  const {walletAddress, walletAdapter} = useWallet()
   const [catalogues, setCatalogues] = useState<ProductData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -33,10 +33,10 @@ const ProductCatalogueList: React.FC = () => {
 
   useEffect(() => {
     loadCatalogues()
-  }, [walletAddress])
+  }, [loadCatalogues, walletAddress])
 
   const handleDelete = async (seed: string) => {
-    if (!walletAddress) {
+    if (!walletAddress || !walletAdapter) {
       setError('Wallet not connected')
       return
     }
@@ -49,10 +49,7 @@ const ProductCatalogueList: React.FC = () => {
     setError(null)
 
     try {
-      // Call the blockchain with the extracted seed
-      await getChainAdapter().deleteProductBoxOnBlockchain(seed, walletAddress)
-
-      // Refresh the list after successful deletion
+      await getChainAdapter().deleteProductBoxOnBlockchain(walletAdapter, seed)
       await loadCatalogues()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete catalogue')
