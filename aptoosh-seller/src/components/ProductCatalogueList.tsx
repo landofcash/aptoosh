@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useCallback} from 'react'
 import {Link} from 'react-router-dom'
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 import {Button} from '@/components/ui/button'
@@ -15,7 +15,7 @@ const ProductCatalogueList: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [deletingSeed, setDeletingSeed] = useState<string | null>(null)
 
-  const loadCatalogues = async () => {
+  const loadCatalogues = useCallback(async () => {
     if (!walletAddress) return
 
     setIsLoading(true)
@@ -29,7 +29,7 @@ const ProductCatalogueList: React.FC = () => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [walletAddress])
 
   useEffect(() => {
     loadCatalogues()

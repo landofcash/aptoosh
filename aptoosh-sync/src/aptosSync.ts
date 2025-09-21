@@ -112,13 +112,13 @@ function mapProductToCache(seed: string, p: any): ProductCacheEntry {
   const version = typeof p.version === 'string' ? Number(p.version) : Number(p.version ?? 1);
   const shop = String((p.shop ?? '').toString());
   const url = String((p.products_url ?? '').toString());
-  const seller_pubkey = String((p.seller_pubkey ?? '').toString());
+  const seller_pubkey = hexToBase64(String((p.seller_pubkey ?? '').toString()));
   return {
-    seed,
+    seed: hexToBase64(seed),
     version: Number.isFinite(version) ? version : 1,
     shopWallet: shop,
     productsUrl: url,
-    sellerPubKey: seller_pubkey,
+    sellerPubKey: hexToBase64(seller_pubkey),
   };
 }
 
@@ -135,12 +135,12 @@ function mapOrderToCache(seed: string, m: any): OrderCacheEntry {
   const seller = toStr(m.seller);
   return {
     version: BigInt(Number(m.version ?? 1)),
-    seed,
+    seed: hexToBase64(seed),
     buyerWallet: buyer,
     sellerWallet: seller,
     amount: toBig(m.price_amount),
     status: BigInt(Number(m.status ?? 0)),
-    productSeed: toStr(m.product_seed),
+    productSeed: hexToBase64(toStr(m.product_seed)),
     price: toBig(m.price_amount),
     priceToken: 0n, // derive from price_token_tag if needed
     seller: seller,

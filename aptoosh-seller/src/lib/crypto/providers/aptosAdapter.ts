@@ -17,6 +17,7 @@ export const aptosAdapter: ChainAdapter = {
     sellerPubKey: string,
     catalogueUrl: string
   ): Promise<string> {
+    console.log(`Create product: ${seed} wallet ${walletAdapter.name} sellerPubKey:${sellerPubKey} url:${catalogueUrl}`);
     if (!seed || seed.length !== 22) {
       throw new Error("Seed must be a 22-character string");
     }
@@ -34,7 +35,16 @@ export const aptosAdapter: ChainAdapter = {
     seed: string
   ): Promise<string> {
     console.log(`Delete product: ${seed} wallet ${walletAdapter.name}`);
-    return "TEST_TX_ID_DELETE_PRODUCT";
+    if (!seed || seed.length !== 22) {
+      throw new Error("Seed must be a 22-character string");
+    }
+    const payload: EntryFunctionPayload = {
+      function: `${getCurrentConfig().account}::aptoosh::delete_product`,
+      type_arguments: [],
+      arguments: [seed]
+    };
+    const result = await walletAdapter.signAndSubmit(payload);
+    return result.hash;
   },
 
   async refuseOrderOnBlockchain(
