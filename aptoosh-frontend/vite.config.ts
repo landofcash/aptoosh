@@ -4,6 +4,7 @@ import {VitePWA} from 'vite-plugin-pwa'
 import path from 'path'
 import tailwindcss from "@tailwindcss/postcss";
 import autoprefixer from "autoprefixer";
+import {visualizer} from "rollup-plugin-visualizer";
 
 export default defineConfig({
   resolve: {
@@ -26,6 +27,10 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes("node_modules")) {
             if (id.includes("@aptos-labs/ts-sdk")) return "aptos";
+            if (id.includes("@zxing")) return "zxing";
+            if (id.includes("@walletconnect")) return "walletconnect";
+            if (id.includes("@noble")) return "noble";
+            if (id.includes("poseidon")) return "poseidon";
             if (id.includes("react")) return "react";
             if (id.includes("eciesjs") || id.includes("elliptic")) return "crypto";
             return "vendor";
@@ -36,6 +41,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    visualizer({filename: "stats.html"}),
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
