@@ -10,6 +10,7 @@ const ACTIVE_WALLET_KEY = `${APP_KEY_PREFIX}_active_internal_wallet`
 export interface StoredAccount {
   addr: string
   sk: number[]
+  mnemonic?: string
 }
 
 export async function getActiveInternalWallet(): Promise<InternalAccount | null> {
@@ -23,16 +24,12 @@ export async function getActiveInternalWallet(): Promise<InternalAccount | null>
   return {
     addr: match.addr,
     sk: new Uint8Array(match.sk),
+    mnemonic: match.mnemonic,
   }
 }
 
 export async function setActiveInternalWallet(addr: string) {
   await set(ACTIVE_WALLET_KEY, addr)
-}
-
-export async function getActiveInternalAddress(): Promise<string | null> {
-  const acc = await getActiveInternalWallet();
-  return acc?.addr ?? null;
 }
 
 export async function loadAllInternalWallets(): Promise<StoredAccount[]> {
@@ -46,7 +43,7 @@ export async function clearActiveInternalWallet() {
 export async function createInternalWallet(): Promise<InternalAccount> {
   const account = await generateAccount()
   const wallets = await loadAllInternalWallets()
-  wallets.push({addr: account.addr, sk: Array.from(account.sk)})
+  wallets.push({addr: account.addr, sk: Array.from(account.sk), mnemonic: account.mnemonic})
   await set(WALLET_KEY, wallets)
   await set(ACTIVE_WALLET_KEY, account.addr) // <-- set as active
   return account
@@ -59,6 +56,7 @@ export async function loadInternalWalletByAddress(addr: string): Promise<Interna
   return {
     addr: match.addr,
     sk: new Uint8Array(match.sk),
+    mnemonic: match.mnemonic,
   }
 }
 
@@ -75,9 +73,28 @@ export async function importInternalWallet(mnemonic: string): Promise<InternalAc
 }
 
 export function exportInternalWallet(internalAccount: InternalAccount): string {
-  try { return accountToMnemonic(internalAccount); } catch { return internalAccount.mnemonic || ""; }
+  try {
+    return accountToMnemonic(internalAccount);
+  } catch {
+    return internalAccount.mnemonic || "";
+  }
 }
 
 export async function clearInternalWallets() {
   await set(WALLET_KEY, [])
+}
+
+export async function removeInternalWallet(addr: string): Promise<void> {
+  const wallets = await loadAllInternalWallets()
+  const filtered = wallets.filter(w => w.addr !== addr)
+  await set(WALLET_KEY, filtered)
+
+  const active = await get(ACTIVE_WALLET_KEY)
+  if (active === addr) {
+    if (filtered.length > 0) {
+      await set(ACTIVE_WALLET_KEY, filtered[0].addr)
+    } else {
+      await set(ACTIVE_WALLET_KEY, null)
+    }
+  }
 }

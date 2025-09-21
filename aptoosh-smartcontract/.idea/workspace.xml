@@ -5,8 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b31442be-9003-4fae-9eb3-d6315332c15b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/components/ProductCatalogueList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/components/ProductCatalogueList.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/components/WalletAuth.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/components/WalletAuth.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/internalWallet.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/internalWallet.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -110,7 +110,7 @@
       <workItem from="1757818328574" duration="298000" />
       <workItem from="1757869992133" duration="15892000" />
       <workItem from="1757972774821" duration="14103000" />
-      <workItem from="1758370045419" duration="11510000" />
+      <workItem from="1758370045419" duration="15500000" />
     </task>
     <servers />
   </component>
