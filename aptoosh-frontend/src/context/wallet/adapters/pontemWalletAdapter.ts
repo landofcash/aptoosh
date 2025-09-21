@@ -45,7 +45,17 @@ export const pontemWalletAdapter: WalletAdapter = {
   async connect(opts?: { silent?: boolean }) {
     const p = provider();
     if (!p?.connect) throw new Error('No Pontem wallet provider found');
-    await p.connect({onlyIfTrusted: !!opts?.silent});
+
+    // Silent path: do not open any UI
+    if (opts?.silent) {
+      try {
+        const a = await p.account?.();
+        return a ?? null;
+      } catch {
+        return null;
+      }
+    }
+    await p.connect({ onlyIfTrusted: false });
     const a = await p.account();
     return a ?? null;
   },

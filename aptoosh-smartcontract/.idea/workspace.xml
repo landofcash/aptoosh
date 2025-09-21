@@ -5,8 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b31442be-9003-4fae-9eb3-d6315332c15b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/components/WalletAuth.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/components/WalletAuth.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/internalWallet.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/internalWallet.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-frontend/src/components/AddressWithName.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-frontend/src/components/AddressWithName.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-frontend/src/components/CopyableField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-frontend/src/components/CopyableField.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-frontend/src/components/ExpandableData.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-frontend/src/components/ExpandableData.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-frontend/src/components/OrderStatusBadge.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-frontend/src/components/OrderStatusBadge.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-frontend/src/components/WalletAuth.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-frontend/src/components/WalletAuth.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-frontend/src/context/WalletContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-frontend/src/context/WalletContext.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-frontend/src/context/wallet/adapters/pontemWalletAdapter.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-frontend/src/context/wallet/adapters/pontemWalletAdapter.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -111,6 +116,7 @@
       <workItem from="1757869992133" duration="15892000" />
       <workItem from="1757972774821" duration="14103000" />
       <workItem from="1758370045419" duration="15500000" />
+      <workItem from="1758468774497" duration="7076000" />
     </task>
     <servers />
   </component>

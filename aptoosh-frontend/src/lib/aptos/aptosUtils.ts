@@ -1,5 +1,4 @@
 import {Account, type Ed25519Account, Ed25519PrivateKey} from "@aptos-labs/ts-sdk";
-import {derivePath} from "ed25519-hd-key";
 import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
 
@@ -43,17 +42,10 @@ export function accountToMnemonicAptos(internalAccount: InternalAccount): string
 
 async function generateAccountWithMnemonic(): Promise<InternalAccount> {
   const mnemonic = bip39.generateMnemonic(wordlist);
-  const seed = await bip39.mnemonicToSeed(mnemonic);
-  const {key} = derivePath(APTOS_PATH, bytesToHex(seed));
-  const privateKey = new Ed25519PrivateKey(key);
-  const account = Account.fromPrivateKey({privateKey});
+  const account = Account.fromDerivationPath({ mnemonic, path: APTOS_PATH });
   return {
     addr: account.accountAddress.toString(),
-    sk: privateKey.toUint8Array(),
+    sk: account.privateKey.toUint8Array(),
     mnemonic: mnemonic
   };
 }
-
-const bytesToHex = (bytes: Uint8Array): string =>
-  Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
-

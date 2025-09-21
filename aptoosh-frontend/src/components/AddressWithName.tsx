@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import CopyableField from "./CopyableField";
-import {resolveName} from "@/lib/cryptoNameHelpers.ts";
+import {getChainAdapter} from "@/lib/crypto/cryptoUtils.ts";
 
 interface AddressWithNameProps {
   label?: string;
@@ -14,7 +14,7 @@ const AddressWithName: React.FC<AddressWithNameProps> = ({label, value, length =
   const [name, setName] = useState<string | null>(null);
 
   useEffect(() => {
-    resolveName(value).then(setName);
+    getChainAdapter().resolveAddressToName(value).then(setName);
   }, [value]);
 
   return (

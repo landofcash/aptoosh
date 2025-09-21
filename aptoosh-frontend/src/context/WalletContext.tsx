@@ -110,9 +110,7 @@ export function WalletProvider({children}: { children: ReactNode }) {
   useEffect(() => {
     const attemptReconnect = async () => {
       try {
-        const legacyType = localStorage.getItem('walletType') as string | null
-        const preferredKind = (localStorage.getItem('walletKind') as WalletKind | null)
-          ?? (legacyType ? (legacyType === 'internal' ? 'internal' : 'external') : null)
+        const preferredKind = localStorage.getItem('walletKind') as WalletKind | null
 
         if (preferredKind === 'internal') {
           const internal = await getActiveInternalWallet()

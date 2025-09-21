@@ -3,7 +3,6 @@ import {Button} from './components/ui/button'
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from './components/ui/card'
 import {Link} from 'react-router-dom'
 import WalletAuth from './components/WalletAuth'
-import InternalWalletModal from "@/components/InternalWalletAuth.tsx";
 import {APP_VERSION} from './config'
 import {useEffect} from 'react'
 
@@ -73,7 +72,6 @@ function App() {
           {/* Wallet components stacked vertically for mobile */}
           <div className="flex flex-col gap-3">
             <WalletAuth/>
-            <InternalWalletModal/>
           </div>
 
           {/* Settings button on its own line with icon and text */}
