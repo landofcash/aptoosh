@@ -114,12 +114,18 @@ function mapProductToCache(seed: string, p: any): ProductCacheEntry {
   const url = String((p.products_url ?? '').toString());
   const seller_pubkey = hexToBase64(String((p.seller_pubkey ?? '').toString()));
   return {
-    seed: hexToBase64(seed),
+    seed: hexToString(seed),
     version: Number.isFinite(version) ? version : 1,
     shopWallet: shop,
     productsUrl: url,
-    sellerPubKey: hexToBase64(seller_pubkey),
+    sellerPubKey: seller_pubkey,
   };
+}
+
+function hexToString(hex: string): string {
+  const clean = hex.startsWith('0x') ? hex.slice(2) : hex;
+  const buf = Buffer.from(clean, 'hex');
+  return buf.toString('utf8');
 }
 
 function hexToBase64(hex: string): string {
