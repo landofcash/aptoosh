@@ -66,14 +66,13 @@ module aptoosh::aptoosh {
         sym_key_hash: vector<u8>,
         payload_hash_buyer: vector<u8>,
         buyer_encrypted: vector<u8>,
-        amount: u64,
-        required_price: u64
+        amount: u64
     ) {
         orders::create_order_paid<CoinType>(
             buyer, seed, product_seed, seller,
             buyer_pubkey, seller_pubkey, enc_key_buyer, enc_key_seller,
             sym_key_hash, payload_hash_buyer, buyer_encrypted,
-            amount, required_price
+            amount
         );
     }
 

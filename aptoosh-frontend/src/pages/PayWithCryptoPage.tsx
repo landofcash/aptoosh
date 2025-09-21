@@ -18,7 +18,7 @@ import {stateToOrderData} from '@/lib/payWithUtils'
 import {useOrder} from "@/context/OrderContext.tsx";
 import ShopVerificationMessage from '@/components/ShopVerificationMessage'
 import {removeItemsByShopWallet} from '@/lib/cartStorage'
-import {processPayment, signMessageWithWallet} from "@/lib/crypto/cryptoUtils.ts";
+import {getChainAdapter} from "@/lib/crypto/cryptoUtils.ts";
 
 
 type PaymentStatus = 'idle' | 'connecting' | 'signing-seed' | 'confirming' | 'processing' | 'success' | 'error'
@@ -26,7 +26,7 @@ type PaymentStep = 1 | 2
 
 function PayWithCryptoPage() {
   const {order, clearOrder} = useOrder()
-  const {walletAddress, walletKind, connect} = useWallet()
+  const {walletAddress, walletKind, connect, signMessage, walletAdapter} = useWallet()
   const navigate = useNavigate()
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle')
   const [currentStep, setCurrentStep] = useState<PaymentStep>(1)
@@ -93,8 +93,7 @@ function PayWithCryptoPage() {
       // Step 3: Sign the seed with the wallet
       const data = signPrefix + seed
       const message = "Sign order seed for secure payment"
-      const signed = await signMessageWithWallet(data, message)
-
+      const signed = await signMessage(data, message)
       const signedBase64 = btoa(String.fromCharCode(...new Uint8Array(signed)))
       setSignedSeed(signedBase64)
 
@@ -131,7 +130,7 @@ function PayWithCryptoPage() {
   }
 
   const handlePayment = async () => {
-    if (!walletAddress || !signedSeed || !encryptedDeliveryInfo || !keyPair) {
+    if (!walletAddress || !signedSeed || !encryptedDeliveryInfo || !keyPair || !walletAdapter) {
       setError('Please complete step 1 first')
       return
     }
@@ -154,9 +153,9 @@ function PayWithCryptoPage() {
 
       // Encrypt symmetric key for seller as well
       const encryptedSymKeySeller = await encryptWithECIES(sellerPubKey, aesKey!)
-
-      const txId = await processPayment(
-        walletAddress,
+      const chainAdapter = getChainAdapter()
+      const txId = await chainAdapter.createOrderPaidOnBlockchain(
+        walletAdapter,
         tokenTotals,
         cartItems,
         orderSeed,

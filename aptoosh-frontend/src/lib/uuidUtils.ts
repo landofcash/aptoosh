@@ -61,12 +61,12 @@ export function decodeBase64Uuid(base64Uuid: string): string {
   // Convert from base64url to standard base64
   const base64 = base64Uuid.replace(/-/g, "+").replace(/_/g, "/") + "=="
   const binary = atob(base64)
-
+  
   // Convert binary string to Uint8Array
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i)
   }
-
+  
   return bytesToUuid(bytes)
 }

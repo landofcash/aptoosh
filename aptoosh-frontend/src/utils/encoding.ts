@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer'
 
 export async function sha256(data: Uint8Array): Promise<Uint8Array> {
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -6,17 +5,10 @@ export async function sha256(data: Uint8Array): Promise<Uint8Array> {
 }
 
 export function b64ToBytes(base64: string): Uint8Array {
-    try {
-        // Use Buffer for more robust base64 decoding
-        return new Uint8Array(Buffer.from(base64, 'base64'));
-    } catch (error) {
-        throw new Error(`Invalid base64 string: ${base64.substring(0, 50)}... 
-        error: ${error instanceof Error ? error.message : String(error)}`);
-    }
+    return Uint8Array.from(Buffer.from(base64, 'base64'));
 }
 
 export function b64FromBytes(bytes: Uint8Array): string {
-    // Use Buffer for more robust base64 encoding
     return Buffer.from(bytes).toString('base64');
 }
 

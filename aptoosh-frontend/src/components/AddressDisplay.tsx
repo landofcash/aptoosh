@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {resolveName} from "@/lib/cryptoNameHelpers.ts";
-import {truncateString} from "@/utils/cryptoFormat.ts";
+import {truncateString} from "@/lib/cryptoFormat.ts";
 
 interface AddressDisplayProps {
   value: string;

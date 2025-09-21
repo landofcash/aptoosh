@@ -7,7 +7,8 @@ import {ProductCatalogueSchema, type Product} from '@/lib/productSchemas'
 import {addItemToCart} from '@/lib/cartStorage'
 import {priceToDisplayString} from '@/lib/tokenUtils'
 import TokenIcon from '@/components/TokenIcon'
-import {fetchProductCatalogueBySeed, type ProductData} from "@/lib/syncService.ts";
+import type {ProductData} from "@/lib/syncService.ts";
+import {getChainAdapter} from "@/lib/crypto/cryptoUtils.ts";
 
 interface ProductRaw {
   ProductId: string
@@ -41,7 +42,8 @@ function ProductDetailPage() {
       setError('')
       try {
         // Read the product box content
-        const productData = await fetchProductCatalogueBySeed(state.productSeed)
+        const chainAdapter = getChainAdapter();
+        const productData = await chainAdapter.viewProductOnBlockchain(state.productSeed)
         setProductData(productData)
         if (productData == null) {
           const errorText = `Product Catalogue with seed:${state.productSeed} not found.`

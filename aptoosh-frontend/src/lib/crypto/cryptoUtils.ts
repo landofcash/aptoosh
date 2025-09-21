@@ -1,8 +1,7 @@
-import type {CartItem} from "@/lib/cartStorage.ts";
 import type {InternalAccount} from "@/lib/crypto/types/InternalAccount.ts";
-import type {GetStorageResult} from "@/lib/crypto/types/GetStorageResult.ts";
 import type {ChainAdapter} from "@/lib/crypto/types/ChainAdapter.ts";
 import {aptosAdapter} from "@/lib/crypto/providers/aptosAdapter.ts";
+import type {NetworkId} from "@/context/wallet/types.ts";
 
 // Adapter selection (default Aptos). WalletProvider can change it via setChainAdapter.
 let adapter: ChainAdapter = aptosAdapter;
@@ -15,8 +14,8 @@ export function getChainAdapter(): ChainAdapter {
   return adapter;
 }
 
-export async function signMessage(internalAccount: InternalAccount, message: string): Promise<Uint8Array> {
-  return await adapter.signMessage(internalAccount, message);
+export async function signMessageInternal(internalAccount: InternalAccount, message: string): Promise<Uint8Array> {
+  return await adapter.signMessageInternal(internalAccount, message);
 }
 
 export async function generateAccount(): Promise<InternalAccount> {
@@ -33,62 +32,7 @@ export function accountToMnemonic(internalAccount: InternalAccount): string {
   return mnemonic;
 }
 
-export async function signMessageWithWallet(dataToSign: string, message: string): Promise<Uint8Array> {
-  return await adapter.signMessageWithWallet(dataToSign, message);
+export function mapNetworkName(name: string): NetworkId {
+  return adapter.mapNetworkName(name);
 }
 
-export async function processPaymentInternal(
-  internalAccount: InternalAccount,
-  tokenTotals: Record<number, bigint>,
-  cartItems: CartItem[],
-  seed: string,
-  publicKey: string,
-  encryptedSymKeyLocal: string,
-  encryptedSymKeySellerLocal: string,
-  hashAES: string,
-  payloadHashLocal: string,
-  encryptedDeliveryInfoLocal: string,
-) {
-  return await adapter.processPaymentInternal(
-    internalAccount,
-    tokenTotals,
-    cartItems as any[],
-    seed,
-    publicKey,
-    encryptedSymKeyLocal,
-    encryptedSymKeySellerLocal,
-    hashAES,
-    payloadHashLocal,
-    encryptedDeliveryInfoLocal,
-  );
-}
-
-export async function processPayment(
-  walletAddress: string,
-  tokenTotals: Record<number, bigint>,
-  cartItems: CartItem[],
-  seed: string,
-  publicKey: string,
-  encryptedSymKeyLocal: string,
-  encryptedSymKeySellerLocal: string,
-  hashAES: string,
-  payloadHashLocal: string,
-  encryptedDeliveryInfoLocal: string,
-) {
-  return await adapter.processPayment(
-    walletAddress,
-    tokenTotals,
-    cartItems as any[],
-    seed,
-    publicKey,
-    encryptedSymKeyLocal,
-    encryptedSymKeySellerLocal,
-    hashAES,
-    payloadHashLocal,
-    encryptedDeliveryInfoLocal,
-  );
-}
-
-export async function getStorageData(storageKey: string): Promise<GetStorageResult> {
-  return await adapter.getStorageData(storageKey);
-}

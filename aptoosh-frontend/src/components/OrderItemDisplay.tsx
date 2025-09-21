@@ -15,9 +15,8 @@ import AddressDisplay from '@/components/AddressDisplay'
 import {formatUtcDate} from '@/lib/dateUtils'
 import {priceToDisplayString} from '@/lib/tokenUtils'
 import {signPrefix} from '@/config'
-import {loadInternalWalletByAddress} from '@/lib/crypto/internalWallet.ts'
-import {getStorageData, signMessage, signMessageWithWallet} from "@/lib/crypto/cryptoUtils.ts";
 import {formatCryptoError} from "@/lib/cryptoFormat.ts";
+import {getChainAdapter} from "@/lib/crypto/cryptoUtils.ts";
 
 interface Order {
   version: string
@@ -59,7 +58,7 @@ interface DecryptedBoxResult {
 }
 
 const OrderItemDisplay: React.FC<OrderItemDisplayProps> = ({order}) => {
-  const {walletAddress, walletKind} = useWallet()
+  const {walletAddress, signMessage} = useWallet()
   const [decryptionStatus, setDecryptionStatus] = useState<DecryptionStatus>('idle')
   const [error, setError] = useState<string>('')
   const [buyerDecryptionResult, setBuyerDecryptionResult] = useState<DecryptedBoxResult | null>(null)
@@ -109,25 +108,11 @@ const OrderItemDisplay: React.FC<OrderItemDisplayProps> = ({order}) => {
       const messageToSign = signPrefix + order.seed
       let signedBase64: string
 
-      if (walletKind === 'internal') {
-        const internalAccount = await loadInternalWalletByAddress(walletAddress)
-        if (!internalAccount) {
-          setError('Internal wallet not found')
-          setDecryptionStatus('error')
-          return
-        }
-        const signed = await signMessage(internalAccount, messageToSign)
-        signedBase64 = btoa(String.fromCharCode(...new Uint8Array(signed)))
-      } else if (walletKind === 'external') {
-        const signed = await signMessageWithWallet(messageToSign,
-          "Sign order seed to decrypt order data")
-        signedBase64 = btoa(String.fromCharCode(...new Uint8Array(signed)))
-      } else {
-        setError('Unsupported wallet type')
-        setDecryptionStatus('error')
-        return
-      }
-
+      const signed = await signMessage(
+        messageToSign,
+        "Sign order seed to decrypt order data"
+      )
+      signedBase64 = btoa(String.fromCharCode(...new Uint8Array(signed)))
       setSignedSeed(signedBase64)
 
       // Step 2: Generate the key pair from signed seed
@@ -140,7 +125,8 @@ const OrderItemDisplay: React.FC<OrderItemDisplayProps> = ({order}) => {
       setAesKey(decryptedAESKey)
 
       // Step 4: Decrypt both buyer and seller boxes using the same AES key
-      const encryptedBuyerData = await getStorageData(`b-${order.seed}`)
+      const chainAdapter = getChainAdapter()
+      const encryptedBuyerData = await chainAdapter.getStorageData(`b-${order.seed}`)
 
       let buyerResult: DecryptedBoxResult = {
         decryptedText: null,
@@ -154,7 +140,7 @@ const OrderItemDisplay: React.FC<OrderItemDisplayProps> = ({order}) => {
       }
       setBuyerDecryptionResult(buyerResult)
 
-      const encryptedSellerData = await getStorageData(`s-${order.seed}`)
+      const encryptedSellerData = await chainAdapter.getStorageData(`s-${order.seed}`)
       let sellerResult: DecryptedBoxResult = {
         decryptedText: null,
         error: null,

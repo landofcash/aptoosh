@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/components/ui/tooltip";
-import {truncateString} from "@/utils/cryptoFormat.ts";
+import {truncateString} from "@/lib/cryptoFormat.ts";
 
 interface CopyableFieldProps {
   label?: string;

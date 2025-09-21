@@ -1,4 +1,18 @@
-export type NetworkId = 'mainnet' | 'testnet' | 'devnet';
+import type {NetworkId} from "@/context/wallet/types.ts";
+
+export const APP_VERSION = '0.2.1'
+export const APP_NAME='Aptoosh'
+export const BASE_URL='https://aptoosh.com'
+
+// Sign prefix for encryption seed generation
+export const signPrefix = "aptoosh-";
+export const APP_KEY_PREFIX = 'Aptoosh';
+const APTOS_EXPLORER_BASE = 'https://explorer.aptoslabs.com';
+const WALLETCONNECT_PROJECT_ID = '9cec891357250a5edfd42c4723e635be';
+
+// Maximum size for order payload in bytes (2KB)
+// while keeping transaction costs reasonable
+export const MAX_ORDER_PAYLOAD_BYTES = 2048;
 
 // Keep TokenConfig backward-compatible (numeric id) for current UI/helpers
 export interface TokenConfig {
@@ -18,38 +32,34 @@ export interface AptosEndpoints {
 }
 
 export interface NetworkConfig {
+  cdnBasePath: string;
   name: NetworkId;
+  account: string;
   apiUrl: string;
+  fileApiUrl:string;
   aptos: AptosEndpoints;
   explorerBaseUrl: string; // https://explorer.aptoslabs.com
+  walletConnectProjectId?: string | null;
   approvedShopWallets: string[];
   supportedTokens: TokenConfig[];
   defaultGasUnitPrice?: number; // Octas per unit
   maxGasAmount?: number; // in gas units
 }
 
-export const APP_VERSION = '0.2.00';
-export const signPrefix = 'aptoosh-';
-
-export const APP_NAME = 'Aptoosh';
-export const APP_KEY_PREFIX = 'Aptoosh';
-
-// Maximum size for order payload in bytes (2KB)
-// while keeping transaction costs reasonable
-export const MAX_ORDER_PAYLOAD_BYTES = 2048;
-
-const APTOS_EXPLORER_BASE = 'https://explorer.aptoslabs.com';
-
 const configs: Record<NetworkId, NetworkConfig> = {
   mainnet: {
     name: 'mainnet',
-    apiUrl: 'https://aptoosh-production.up.railway.app/api/m',
+    account: '0x21ea52c02b58b1792175feac62eb407c7a0503e72e33ba0e0832793cb744149e',
+    apiUrl: 'https://sync.aptoosh.com/api/m',
+    fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
+    cdnBasePath: 'https://aptoosh.b-cdn.net',
     aptos: {
       nodeUrl: 'https://fullnode.mainnet.aptoslabs.com/v1',
       indexerGraphqlUrl: 'https://indexer.mainnet.aptoslabs.com/v1/graphql',
       indexerRestUrl: 'https://indexer-mainnet.staging.gcp.aptosdev.com/v1',
     },
     explorerBaseUrl: APTOS_EXPLORER_BASE,
+    walletConnectProjectId: WALLETCONNECT_PROJECT_ID,
     approvedShopWallets: [],
     supportedTokens: [
       { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
@@ -60,7 +70,10 @@ const configs: Record<NetworkId, NetworkConfig> = {
 
   testnet: {
     name: 'testnet',
-    apiUrl: 'https://aptoosh-production.up.railway.app/api/t',
+    account: '0x21ea52c02b58b1792175feac62eb407c7a0503e72e33ba0e0832793cb744149e',
+    apiUrl: 'https://sync.aptoosh.com/api/t',
+    fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
+    cdnBasePath: 'https://aptoosh.b-cdn.net',
     aptos: {
       nodeUrl: 'https://fullnode.testnet.aptoslabs.com/v1',
       indexerGraphqlUrl: 'https://indexer.testnet.aptoslabs.com/v1/graphql',
@@ -68,6 +81,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
       faucetUrl: 'https://faucet.testnet.aptoslabs.com',
     },
     explorerBaseUrl: APTOS_EXPLORER_BASE,
+    walletConnectProjectId: WALLETCONNECT_PROJECT_ID,
     approvedShopWallets: [
       '0x0000000000000000000000000000000000000000000000000000000000000001',
     ],
@@ -80,13 +94,17 @@ const configs: Record<NetworkId, NetworkConfig> = {
 
   devnet: {
     name: 'devnet',
-    apiUrl: 'https://aptoosh-production.up.railway.app/api/d',
+    account: '0x21ea52c02b58b1792175feac62eb407c7a0503e72e33ba0e0832793cb744149e',
+    apiUrl: 'https://sync.aptoosh.com/api/d',
+    fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
+    cdnBasePath: 'https://aptoosh.b-cdn.net',
     aptos: {
       nodeUrl: 'https://fullnode.devnet.aptoslabs.com/v1',
       indexerGraphqlUrl: 'https://indexer.devnet.aptoslabs.com/v1/graphql',
       faucetUrl: 'https://faucet.devnet.aptoslabs.com',
     },
     explorerBaseUrl: APTOS_EXPLORER_BASE,
+    walletConnectProjectId: WALLETCONNECT_PROJECT_ID,
     approvedShopWallets: [],
     supportedTokens: [
       { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
@@ -100,7 +118,7 @@ export const getConfig = (network: NetworkId): NetworkConfig => configs[network]
 
 export const getCurrentConfig = (): NetworkConfig => {
   const raw = (localStorage.getItem('network') as NetworkId) || 'testnet';
-  const network: NetworkId = ['mainnet', 'testnet', 'devnet', 'local'].includes(raw) ? raw : 'testnet';
+  const network: NetworkId = ['mainnet', 'testnet', 'devnet'].includes(raw) ? raw : 'testnet';
   return getConfig(network);
 };
 
@@ -125,3 +143,4 @@ export function explorerObjectUrl(objectAddress: string, network?: NetworkId): s
   const suffix = n === 'mainnet' ? '' : `?network=${n}`;
   return `${cfg.explorerBaseUrl}/object/${objectAddress}${suffix}`;
 }
+

@@ -9,12 +9,9 @@ import {decryptAES, decryptWithECIES} from "@/utils/encryption";
 import {b64FromBytes, sha256} from "@/utils/encoding";
 import ExpandableData from "@/components/ExpandableData";
 import {signPrefix} from "@/config";
-import {loadInternalWalletByAddress} from "@/lib/crypto/internalWallet.ts";
-import {signMessage, signMessageWithWallet} from "@/lib/crypto/cryptoUtils.ts";
-
 
 const TestDecryptionPage: React.FC = () => {
-  const {walletAddress, walletKind} = useWallet();
+  const {walletAddress, signMessage} = useWallet();
 
   const [seed, setSeed] = useState("");
   const [encryptedPayload, setEncryptedPayload] = useState("");
@@ -34,20 +31,8 @@ const TestDecryptionPage: React.FC = () => {
     try {
       setError(null);
       const messageToSign = signPrefix + seed;
-      let signedB64: string = "";
-      let signed:Uint8Array<ArrayBufferLike>;
-      if (walletKind === "internal") {
-        const internalAccount = await loadInternalWalletByAddress(walletAddress)
-        if (!internalAccount) {
-          console.error("Internal wallet not found");
-          setError("Internal wallet not found");
-          return;
-        }
-        signed = await signMessage(internalAccount, messageToSign);
-      } else{
-        signed = await signMessageWithWallet(messageToSign, "Sign encryption seed");
-      }
-      signedB64 = btoa(String.fromCharCode(...new Uint8Array(signed)));
+      const signed= await signMessage(messageToSign, "Sign encryption seed");
+      const signedB64 = btoa(String.fromCharCode(...new Uint8Array(signed)));
       setSignedSeed(signedB64);
       const keyPair = await generateKeyPairFromB64(signedB64);
 

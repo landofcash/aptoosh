@@ -1,16 +1,16 @@
 import * as ecies from "eciesjs";
-import {b64ToBytes, b64FromBytes} from "./encoding";
+import {b64ToBytes} from "@/utils/encoding.ts";
 
 /**
  * Generates a random AES-GCM key (256-bit).
  * @returns {Promise<CryptoKey>} AES CryptoKey
  */
 export async function generateAESKey(): Promise<CryptoKey> {
-  return await crypto.subtle.generateKey(
-    {name: "AES-GCM", length: 256},
-    true,
-    ["encrypt", "decrypt"]
-  );
+    return await crypto.subtle.generateKey(
+        { name: "AES-GCM", length: 256 },
+        true,
+        ["encrypt", "decrypt"]
+    );
 }
 
 /**
@@ -20,21 +20,21 @@ export async function generateAESKey(): Promise<CryptoKey> {
  * @returns {Promise<string>} Base64 encoded IV + Ciphertext
  */
 export async function encryptAES(key: CryptoKey, text: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(text);
-  const iv = crypto.getRandomValues(new Uint8Array(12)); // 12-byte IV for AES-GCM
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const iv = crypto.getRandomValues(new Uint8Array(12)); // 12-byte IV for AES-GCM
 
-  const encrypted = await crypto.subtle.encrypt(
-    {name: "AES-GCM", iv},
-    key,
-    data
-  );
+    const encrypted = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv },
+        key,
+        data
+    );
 
-  return (
-    btoa(String.fromCharCode(...iv)) +
-    ":" +
-    btoa(String.fromCharCode(...new Uint8Array(encrypted)))
-  );
+    return (
+        btoa(String.fromCharCode(...iv)) +
+        ":" +
+        btoa(String.fromCharCode(...new Uint8Array(encrypted)))
+    );
 }
 
 /**
@@ -44,40 +44,39 @@ export async function encryptAES(key: CryptoKey, text: string): Promise<string> 
  * @returns {Promise<string>} Decrypted plaintext
  */
 export async function decryptAES(key: CryptoKey, encrypted: string): Promise<string> {
-  const [ivB64, ciphertextB64] = encrypted.split(":");
-  const iv = Uint8Array.from(atob(ivB64), c => c.charCodeAt(0));
-  const ciphertext = Uint8Array.from(atob(ciphertextB64), c => c.charCodeAt(0));
+    const [ivB64, ciphertextB64] = encrypted.split(":");
+    const iv = Uint8Array.from(atob(ivB64), c => c.charCodeAt(0));
+    const ciphertext = Uint8Array.from(atob(ciphertextB64), c => c.charCodeAt(0));
 
-  const decrypted = await crypto.subtle.decrypt(
-    {name: "AES-GCM", iv},
-    key,
-    ciphertext
-  );
+    const decrypted = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv },
+        key,
+        ciphertext
+    );
 
-  const decoder = new TextDecoder();
-  return decoder.decode(decrypted);
+    const decoder = new TextDecoder();
+    return decoder.decode(decrypted);
 }
 
 /**
  * Encrypts an AES key using ECIES with secp256k1.
- * @param {string} publicKeyBase64 - Receiver's public key (Base64)
+ * @param {string} publicKeyHex - Receiver's public key (Base64)
  * @param {CryptoKey} aesKey - AES key to encrypt
  * @returns {Promise<string>} Encrypted AES key (Base64)
  */
-export async function encryptWithECIES(publicKeyBase64: string, aesKey: CryptoKey): Promise<string> {
-  // Export the AES key as raw bytes
-  const exportedKey = await crypto.subtle.exportKey("raw", aesKey);
-  const aesKeyBytes = new Uint8Array(exportedKey);
+export async function encryptWithECIES(publicKeyHex: string, aesKey: CryptoKey): Promise<string> {
+    // Export the AES key as raw bytes
+    const exportedKey = await crypto.subtle.exportKey("raw", aesKey);
+    const aesKeyBytes = new Uint8Array(exportedKey);
 
-  // Convert public key base64 to Uint8Array
-  const publicKeyBytes = b64ToBytes(publicKeyBase64);
+    // Convert public key hex to Buffer
+    const publicKeyBuffer = b64ToBytes(publicKeyHex);
 
-  // Encrypt the AES key with ECIES (secp256k1)
-  const encryptedAESKey = ecies.encrypt(publicKeyBytes, aesKeyBytes);
+    // Encrypt AES key with ECIES (secp256k1)
+    const encryptedAESKey = ecies.encrypt(publicKeyBuffer, aesKeyBytes);
 
-  // Convert the result to Uint8Array if it's a Buffer, then to Base64
-  const encryptedBytes = new Uint8Array(encryptedAESKey);
-  return b64FromBytes(encryptedBytes);
+    // Return encrypted AES key as Base64
+    return Buffer.from(encryptedAESKey).toString("base64");
 }
 
 /**
@@ -87,21 +86,19 @@ export async function encryptWithECIES(publicKeyBase64: string, aesKey: CryptoKe
  * @returns {Promise<CryptoKey>} Decrypted AES CryptoKey
  */
 export async function decryptWithECIES(privateKeyBase64: string, encryptedBase64: string): Promise<CryptoKey> {
-  const privateKeyBytes = b64ToBytes(privateKeyBase64);
-  const encryptedBytes = b64ToBytes(encryptedBase64);
+    const privateKeyBuffer = Buffer.from(privateKeyBase64, "base64");
+    const encryptedBytes = Buffer.from(encryptedBase64, "base64");
 
-  // Decrypt AES key bytes using ECIES
-  const decryptedAESBytes = ecies.decrypt(privateKeyBytes, encryptedBytes);
+    // Decrypt AES key bytes using ECIES
+    const decryptedAESBytes = ecies.decrypt(privateKeyBuffer, encryptedBytes);
 
-  // Convert the result to Uint8Array if it's a Buffer
-  const decryptedBytes = new Uint8Array(decryptedAESBytes);
-
-  // Import as AES-GCM CryptoKey
-  return await crypto.subtle.importKey(
-    "raw",
-    decryptedBytes,
-    {name: "AES-GCM"},
-    true,
-    ["encrypt", "decrypt"]
-  );
+    // Import as AES-GCM CryptoKey
+    return await crypto.subtle.importKey(
+        "raw",
+        decryptedAESBytes,
+        { name: "AES-GCM" },
+        true,
+        ["encrypt", "decrypt"]
+    );
 }
+

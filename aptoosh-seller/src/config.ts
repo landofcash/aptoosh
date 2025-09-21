@@ -1,6 +1,6 @@
 import type {NetworkId} from "@/context/wallet/types.ts";
 
-export const APP_VERSION = '0.1.7'
+export const APP_VERSION = '0.2.1'
 export const APP_NAME='Aptoosh'
 export const BASE_URL='https://aptoosh.com'
 
@@ -45,7 +45,7 @@ export interface NetworkConfig {
 const configs: Record<NetworkId, NetworkConfig> = {
   mainnet: {
     name: 'mainnet',
-    account: '0x21ea52c02b58b1792175feac62eb407c7a0503e72e33ba0e0832793cb744149e',
+    account: '0x84171af48f266ba207890b75e78b503336c1cef911f693d65eb770da000f971f',
     apiUrl: 'https://sync.aptoosh.com/api/m',
     fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
     cdnBasePath: 'https://aptoosh.b-cdn.net',
@@ -66,7 +66,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
 
   testnet: {
     name: 'testnet',
-    account: '0x21ea52c02b58b1792175feac62eb407c7a0503e72e33ba0e0832793cb744149e',
+    account: '0x84171af48f266ba207890b75e78b503336c1cef911f693d65eb770da000f971f',
     apiUrl: 'https://sync.aptoosh.com/api/t',
     fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
     cdnBasePath: 'https://aptoosh.b-cdn.net',
@@ -90,7 +90,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
 
   devnet: {
     name: 'devnet',
-    account: '0x21ea52c02b58b1792175feac62eb407c7a0503e72e33ba0e0832793cb744149e',
+    account: '0x84171af48f266ba207890b75e78b503336c1cef911f693d65eb770da000f971f',
     apiUrl: 'https://sync.aptoosh.com/api/d',
     fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
     cdnBasePath: 'https://aptoosh.b-cdn.net',

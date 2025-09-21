@@ -20,7 +20,7 @@ export function getOrderStatusText(status: string): string {
     case '6':
       return 'Refunded to Seller'
     case '7':
-      return 'Refunded to Buyer'
+      return 'Refunded'
     default:
       return `Status ${status}`
   }

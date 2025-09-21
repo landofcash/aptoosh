@@ -31,11 +31,11 @@ module aptoosh::orders {
     const E_BAD_STATE: u64 = 6;
     const E_UNDERPAID: u64 = 7;
     const E_NOT_ADMIN: u64 = 8;
-    
+
     const EVENT_CREATE: u8 = 1;
     const EVENT_UPDATE: u8 = 2;
     const EVENT_DELETE: u8 = 3;
-    
+
     struct OrderMeta has copy, store, drop {
         version: u8,
         product_seed: vector<u8>, // 22 bytes
@@ -55,7 +55,7 @@ module aptoosh::orders {
         created_ts: u64,
         updated_ts: u64
     }
-    
+
     struct OrderEvents has key {
        event: event::EventHandle<OrderEvent>
     }
@@ -65,7 +65,7 @@ module aptoosh::orders {
         seed: vector<u8>,
         action: u8
     }
-    
+
     /// Key for chunked encrypted address: avoids tuple-as-key uncertainty.
     struct AddrKey has copy, store, drop {
         seed: vector<u8>,
@@ -103,7 +103,7 @@ module aptoosh::orders {
         );
     }
 
-    /* ----- Helpers ----- */    
+    /* ----- Helpers ----- */
     /// Replace a value in a Table<K, vector<u8>> (remove if exists, then add).
     fun table_put_vec<K: copy + drop>(
         t: &mut table::Table<K, vector<u8>>,
@@ -189,14 +189,12 @@ module aptoosh::orders {
         sym_key_hash: vector<u8>,
         payload_hash_buyer: vector<u8>,
         buyer_encrypted: vector<u8>,
-        amount: u64,
-        required_price: u64
+        amount: u64
     ) acquires Orders, OrderEvents {
         assert!(
             seed.length() == SEED_LEN && product_seed.length() == SEED_LEN,
             E_BAD_SEED
         );
-        assert!(amount == required_price, E_UNDERPAID);
 
         escrow::deposit<CoinType>(buyer, amount);
 
@@ -208,7 +206,7 @@ module aptoosh::orders {
             version: 1,
             product_seed,
             status: S_PAID,
-            price_amount: required_price,
+            price_amount: amount,
             price_token_tag: option::some<type_info::TypeInfo>(
                 type_info::type_of<CoinType>()
             ),
@@ -257,7 +255,7 @@ module aptoosh::orders {
             );
         };
 
-        escrow::deposit<CoinType>(payer, amount);        
+        escrow::deposit<CoinType>(payer, amount);
         meta.status = S_PAID;
         meta.payer = option::some<address>(signer::address_of(payer));
         meta.updated_ts = timestamp::now_seconds();
@@ -282,7 +280,7 @@ module aptoosh::orders {
         assert!(meta.seller == seller_addr, E_NOT_OWNER);
         assert!(meta.status == S_PAID, E_BAD_STATE);
 
-        meta.payload_hash_seller = payload_hash_seller;        
+        meta.payload_hash_seller = payload_hash_seller;
         meta.status = S_DELIVERING;
         meta.updated_ts = timestamp::now_seconds();
 
@@ -306,10 +304,10 @@ module aptoosh::orders {
 
         assert_order_coin<CoinType>(meta);
         // Payout from escrow to seller
-        escrow::payout<CoinType>(meta.seller, meta.price_amount);                
+        escrow::payout<CoinType>(meta.seller, meta.price_amount);
         meta.status = S_COMPLETED;
         meta.updated_ts = timestamp::now_seconds();
-        
+
         let events = borrow_global_mut<OrderEvents>(@aptoosh);
         event::emit_event(
             &mut events.event, OrderEvent { seed, action: EVENT_UPDATE }
@@ -332,7 +330,7 @@ module aptoosh::orders {
 
         meta.status = S_REFUND_REQ;
         meta.updated_ts = timestamp::now_seconds();
-        
+
         let events = borrow_global_mut<OrderEvents>(@aptoosh);
         event::emit_event(
             &mut events.event, OrderEvent { seed, action: EVENT_UPDATE }
@@ -360,7 +358,7 @@ module aptoosh::orders {
             } else {
                 meta.buyer
             };
-        escrow::payout<CoinType>(to_addr, meta.price_amount);        
+        escrow::payout<CoinType>(to_addr, meta.price_amount);
         meta.status = S_REFUNDED_TO_BUYER;
         meta.updated_ts = timestamp::now_seconds();
         let events = borrow_global_mut<OrderEvents>(@aptoosh);
@@ -383,7 +381,7 @@ module aptoosh::orders {
             E_BAD_STATE
         );
         assert_order_coin<CoinType>(meta);
-        escrow::payout<CoinType>(meta.seller, meta.price_amount);        
+        escrow::payout<CoinType>(meta.seller, meta.price_amount);
         meta.status = S_REFUNDED_TO_SELLER;
         meta.updated_ts = timestamp::now_seconds();
         let events = borrow_global_mut<OrderEvents>(@aptoosh);
@@ -429,7 +427,7 @@ module aptoosh::orders {
 
             meta.status = S_REFUNDED_TO_BUYER;
             meta.updated_ts = now;
-            
+
             let events = borrow_global_mut<OrderEvents>(@aptoosh);
             event::emit_event(
                 &mut events.event, OrderEvent { seed, action: EVENT_UPDATE }
@@ -489,7 +487,7 @@ module aptoosh::orders {
 
         // Remove metadata (rebate)
         let _ = store.by_id.remove(copy seed);
-        
+
         let events = borrow_global_mut<OrderEvents>(@aptoosh);
         event::emit_event(
             &mut events.event, OrderEvent { seed, action: EVENT_DELETE }

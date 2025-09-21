@@ -6,14 +6,8 @@ import {useState} from 'react'
 import {priceToDisplayString} from '@/lib/tokenUtils'
 import TokenIcon from '@/components/TokenIcon'
 import {encodeBase64Uuid} from "@/lib/uuidUtils.ts";
-import {signPrefix, MAX_ORDER_PAYLOAD_BYTES} from "@/config.ts";
+import {MAX_ORDER_PAYLOAD_BYTES, signPrefix} from "@/config.ts";
 import {useWallet} from "@/context/WalletContext.tsx";
-import {
-  createInternalWallet,
-  loadAllInternalWallets,
-  loadInternalWalletByAddress,
-  setActiveInternalWallet
-} from "@/lib/crypto/internalWallet.ts";
 import {generateKeyPairFromB64} from '@/utils/keygen'
 import {encryptAES, encryptWithECIES, generateAESKey} from '@/utils/encryption'
 import {b64FromBytes, hashCryptoKeyToB64, sha256} from "@/utils/encoding.ts";
@@ -22,8 +16,7 @@ import ExpandableData from "@/components/ExpandableData.tsx";
 import {useOrder} from '@/context/OrderContext'
 import ShopVerificationMessage from '@/components/ShopVerificationMessage'
 import {removeItemsByShopWallet} from '@/lib/cartStorage'
-import {processPaymentInternal, signMessage} from "@/lib/crypto/cryptoUtils.ts";
-import type {InternalAccount} from "@/lib/crypto/types/InternalAccount.ts";
+import {getChainAdapter} from "@/lib/crypto/cryptoUtils.ts";
 
 type PaymentStatus = 'idle' | 'processing' | 'success' | 'error'
 
@@ -37,7 +30,7 @@ interface CreditCardInfo {
 
 function PayWithCreditCardPage() {
   const {order, clearOrder} = useOrder()
-  const {walletKind, walletAddress, connect} = useWallet()
+  const {walletKind, signMessage, walletAdapter} = useWallet()
   const navigate = useNavigate()
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle')
   const [error, setError] = useState<string>('')
@@ -116,30 +109,14 @@ function PayWithCreditCardPage() {
     setPaymentStatus('processing')
     setError('')
     try {
-      let internalAccount: InternalAccount | null = null;
       if (walletKind === 'external') {
         logError("(Beta Version) Crypto wallet is not supported with CC payment. " +
           "Please explicitly disconnect Crypto wallet to use CC payment.")
         return
       }
-      if (!walletAddress) {
-        const allWallets = await loadAllInternalWallets();
-        if (allWallets.length === 0) {
-          internalAccount = await createInternalWallet()
-          await setActiveInternalWallet(internalAccount.addr)
-        } else {
-          await setActiveInternalWallet(allWallets[0].addr)
-          internalAccount = {
-            addr: allWallets[0].addr,
-            sk: new Uint8Array(allWallets[0].sk),
-          }
-        }
-        await connect({kind: 'internal'})
-      } else {
-        internalAccount = await loadInternalWalletByAddress(walletAddress)
-      }
-      if (internalAccount === null) {
-        logError("Internal wallet not found")
+
+      if (walletAdapter === null) {
+        logError("Please connect your wallet to proceed with CC payment.")
         return
       }
 
@@ -167,7 +144,8 @@ function PayWithCreditCardPage() {
       //create seed and sign it
       const seed = encodeBase64Uuid(crypto.randomUUID())
       setOrderSeed(seed)
-      const signed = await signMessage(internalAccount, signPrefix + seed)
+      const message = "Sign order seed for secure payment"
+      const signed = await signMessage(signPrefix + seed, message)
       const signedBase64 = btoa(String.fromCharCode(...new Uint8Array(signed)))
       setSignedSeed(signedBase64)
       const generatedKeyPairLocal = await generateKeyPairFromB64(signedBase64)
@@ -186,8 +164,9 @@ function PayWithCreditCardPage() {
       setSymmetricKeyHash(hashAES)
       const payloadHashLocal = b64FromBytes(await sha256(new TextEncoder().encode(orderDataJson)))
       setPayloadHash(payloadHashLocal)
-
-      const txId = await processPaymentInternal(internalAccount,
+      const chainAdapter = getChainAdapter()
+      const txId = await chainAdapter.createOrderInitialOnBlockchain(
+        walletAdapter,
         tokenTotals,
         cartItems,
         seed,

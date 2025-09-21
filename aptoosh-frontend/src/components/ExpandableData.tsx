@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {truncateString, formatCryptoKeyToBase64} from "@/utils/cryptoFormat";
+import {formatCryptoKeyToBase64, truncateString} from "@/lib/cryptoFormat.ts";
 
 const ExpandableData: React.FC<{ value: string | CryptoKey; length?: number }> = ({
                                                                                     value,
