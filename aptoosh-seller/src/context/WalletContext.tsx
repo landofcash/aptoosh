@@ -1,6 +1,6 @@
 import {createContext, useContext, useState, useCallback, type ReactNode, useEffect, useMemo} from 'react'
 import {getCurrentConfig} from '@/config'
-import {getActiveInternalWallet} from "@/lib/crypto/internalWallet.ts"
+import {getActiveInternalWallet, loadAllInternalWallets, setActiveInternalWallet} from "@/lib/crypto/internalWallet.ts"
 import {setChainAdapter} from '@/lib/crypto/cryptoUtils.ts'
 import {aptosAdapter} from '@/lib/crypto/providers/aptosAdapter.ts'
 import type {ChainId, NetworkId, WalletKind, WalletAdapter} from './wallet/types'
@@ -31,6 +31,11 @@ export interface WalletContextType {
   externalProviderId: string | null
   availableExternalProviders: { id: string; name: string; installed: boolean }[]
 
+  // Internal wallet management
+  internalAddresses: string[]
+  refreshInternalAddresses: () => Promise<void>
+  activateInternalAddress: (addr: string) => Promise<void>
+
   connect: (opts?: { kind?: WalletKind; chain?: ChainId; providerId?: string; silent?: boolean }) => Promise<void>
   disconnect: () => Promise<void>
   switchNetwork: (network: NetworkId) => void
@@ -48,6 +53,7 @@ export function WalletProvider({children}: { children: ReactNode }) {
   const [chain, setChain] = useState<ChainId>(() => (localStorage.getItem('chain') as ChainId) || 'aptos')
   const [network, setNetwork] = useState<NetworkId>(() => (getCurrentConfig().name as NetworkId) || (localStorage.getItem('network') as NetworkId) || 'testnet')
   const [externalProviderId, setExternalProviderIdState] = useState<string | null>(() => localStorage.getItem('externalProviderId'))
+  const [internalAddresses, setInternalAddresses] = useState<string[]>([])
 
   // crypto layer adapter
   useEffect(() => {
@@ -79,6 +85,26 @@ export function WalletProvider({children}: { children: ReactNode }) {
   const availableExternalProviders = useMemo(() => {
     return (adapters || []).map(a => ({id: a.id, name: a.name, installed: a.isInstalled ? a.isInstalled() : true}))
   }, [adapters])
+
+  const refreshInternalAddresses = useCallback(async () => {
+    try {
+      const wallets = await loadAllInternalWallets()
+      setInternalAddresses(wallets.map(w => w.addr))
+    } catch (e) {
+      console.error('Failed to load internal addresses:', e)
+      setInternalAddresses([])
+    }
+  }, [])
+
+  useEffect(() => {
+    void refreshInternalAddresses()
+  }, [refreshInternalAddresses])
+
+  const activateInternalAddress = useCallback(async (addr: string) => {
+    await setActiveInternalWallet(addr)
+    setWalletAddress(addr)
+    setWalletKind('internal')
+  }, [])
 
   // Attempt silent reconnect on the load or when chain/provider changes
   useEffect(() => {
@@ -164,6 +190,7 @@ export function WalletProvider({children}: { children: ReactNode }) {
         if (addr) {
           setWalletAddress(addr)
           setWalletKind('internal')
+          await refreshInternalAddresses()
         }
         return
       }
@@ -245,6 +272,9 @@ export function WalletProvider({children}: { children: ReactNode }) {
       walletKind,
       externalProviderId,
       availableExternalProviders,
+      internalAddresses,
+      refreshInternalAddresses,
+      activateInternalAddress,
 
       connect,
       disconnect,

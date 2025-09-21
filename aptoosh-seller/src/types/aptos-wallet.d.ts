@@ -25,6 +25,10 @@ export interface AptosSignMessageResponse {
   signature: string | Uint8Array;
 }
 
+export interface AptosSignAndSubmitResponse {
+  hash: string;
+}
+
 export interface PontemWalletProvider {
   // identity
   name?: string;
@@ -72,7 +76,7 @@ export interface PetraWalletProvider {
 
   // crypto
   signMessage?(payload: AptosSignMessagePayload): Promise<AptosSignMessageResponse>;
-  signAndSubmitTransaction(payload: EntryFunctionPayload): Promise<{payload: EntryFunctionPayload, result: PendingTransaction}>;
+  signAndSubmitTransaction(payload: EntryFunctionPayload): Promise<AptosSignAndSubmitResponse>;
 }
 
 declare global {

@@ -96,10 +96,10 @@ export const petraWalletAdapter: WalletAdapter = {
     const response = await p.signAndSubmitTransaction(tx);
     const aptos = getAptosClient();
     try {
-      await aptos.waitForTransaction({ transactionHash: response.result.hash });
+      await aptos.waitForTransaction({ transactionHash: response.hash });
     } catch (error) {
       console.error(error);
     }
-    return { hash: response.result.hash };
+    return { hash: response.hash };
   }
 };
