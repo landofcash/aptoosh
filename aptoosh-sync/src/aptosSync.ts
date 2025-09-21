@@ -141,31 +141,32 @@ function mapOrderToCache(seed: string, m: any): OrderCacheEntry {
   const seller = toStr(m.seller);
   return {
     version: BigInt(Number(m.version ?? 1)),
-    seed: hexToBase64(seed),
+    seed: hexToString(seed),
     buyerWallet: buyer,
     sellerWallet: seller,
     amount: toBig(m.price_amount),
     status: BigInt(Number(m.status ?? 0)),
-    productSeed: hexToBase64(toStr(m.product_seed)),
+    productSeed: hexToString(toStr(m.product_seed)),
     price: toBig(m.price_amount),
     priceToken: 0n, // derive from price_token_tag if needed
     seller: seller,
     buyer: buyer,
     payer: toStr(m.payer ?? ''),
-    buyerPubKey: hexToBase64(toStr(m.buyer_pubkey ?? '')),
-    sellerPubKey: hexToBase64(toStr(m.seller_pubkey ?? '')),
-    encryptedSymKeyBuyer: hexToBase64(toStr(m.enc_symkey_buyer ?? '')),
-    encryptedSymKeySeller: hexToBase64(toStr(m.enc_symkey_seller ?? '')),
-    symKeyHash: hexToBase64(toStr(m.sym_key_hash ?? '')),
-    payloadHashBuyer: hexToBase64(toStr(m.payload_hash_buyer ?? '')),
-    payloadHashSeller: hexToBase64(toStr(m.payload_hash_seller ?? '')),
+    buyerPubKey: hexToString(toStr(m.buyer_pubkey ?? '')),
+    sellerPubKey: hexToString(toStr(m.seller_pubkey ?? '')),
+    encryptedSymKeyBuyer: hexToString(toStr(m.enc_symkey_buyer ?? '')),
+    encryptedSymKeySeller: hexToString(toStr(m.enc_symkey_seller ?? '')),
+    symKeyHash: hexToString(toStr(m.sym_key_hash ?? '')),
+    payloadHashBuyer: hexToString(toStr(m.payload_hash_buyer ?? '')),
+    payloadHashSeller: hexToString(toStr(m.payload_hash_seller ?? '')),
     createdDate: toBig(m.created_ts),
     updatedDate: toBig(m.updated_ts),
   };
 }
 
-async function deleteProductFromCache(network: string, seed: string) {
+async function deleteProductFromCache(network: string, seedHex: string) {
   const stores = await appDb.getAllProducts(network);
+  const seed = hexToString(seedHex);
   for (const store of stores) {
     const updated = store.products.filter(p => p.seed !== seed);
     if (updated.length !== store.products.length) {
@@ -174,8 +175,9 @@ async function deleteProductFromCache(network: string, seed: string) {
   }
 }
 
-async function deleteOrderFromCache(network: string, seed: string) {
+async function deleteOrderFromCache(network: string, seedHex: string) {
   const stores = await appDb.getAllOrders(network);
+  const seed = hexToString(seedHex);
   for (const store of stores) {
     const updated = store.orders.filter(o => o.seed !== seed);
     if (updated.length !== store.orders.length) {
