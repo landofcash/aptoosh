@@ -1,6 +1,6 @@
 import React from 'react'
 import {Button} from '@/components/ui/button'
-import {FileDown, Trash2} from 'lucide-react'
+import {FileDown, Trash2, PlusCircle, FileUp} from 'lucide-react'
 import {truncateString} from '@/lib/cryptoFormat'
 
 interface InternalWalletListProps {
@@ -9,6 +9,7 @@ interface InternalWalletListProps {
   isInternalActive: boolean
   onActivate: (addr: string) => void | Promise<void>
   onCreate?: () => void | Promise<void>
+  onImport?: () => void | Promise<void>
   onExport: (addr: string) => void | Promise<void>
   onDelete: (addr: string) => void | Promise<void>
   compact?: boolean
@@ -20,14 +21,14 @@ const InternalWalletList: React.FC<InternalWalletListProps> = ({
   isInternalActive,
   onActivate,
   onCreate,
+  onImport,
   onExport,
   onDelete,
   compact,
 }) => {
-  if (!addresses?.length) return null
-
   return (
     <div>
+      <div className="text-xs text-muted-foreground mb-2">Internal wallets</div>
       <ul className="space-y-2">
         {addresses.map((addr) => {
           const isActive = activeAddress === addr
@@ -39,7 +40,7 @@ const InternalWalletList: React.FC<InternalWalletListProps> = ({
                 className={`text-[10px] flex-1 justify-start ${compact ? 'h-7' : ''}`}
                 onClick={() => onActivate(addr)}
               >
-                {truncateString(addr, 22)}
+                {truncateString(addr, 20)}
               </Button>
               <Button
                 size="icon"
@@ -63,13 +64,21 @@ const InternalWalletList: React.FC<InternalWalletListProps> = ({
           )
         })}
       </ul>
-      {isInternalActive && onCreate && (
-        <div className="mt-2 text-right flex justify-end">
-          <Button size="sm" variant="outline" onClick={onCreate}>
-            Create another
+
+      <div className="mt-2 items-center gap-2">
+        {onCreate && (
+          <Button size="sm" variant="outline" onClick={onCreate} className="w-full text-xs inline-flex items-center gap-2">
+            <PlusCircle className="w-4 h-4" />
+            Create Wallet
           </Button>
-        </div>
-      )}
+        )}
+        {onImport && (
+          <Button size="sm" variant="outline" onClick={onImport} className="mt-2 w-full text-xs inline-flex items-center gap-2">
+            <FileUp className="w-4 h-4" />
+            Import Wallet
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

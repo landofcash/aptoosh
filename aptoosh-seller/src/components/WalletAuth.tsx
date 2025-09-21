@@ -7,11 +7,13 @@ import CopyableField from "@/components/CopyableField";
 import InternalWalletList from "@/components/wallet/InternalWalletList";
 import ConfirmModal from "@/components/wallet/ConfirmModal";
 import ExportModal from "@/components/wallet/ExportModal";
+import ImportModal from "@/components/wallet/ImportModal";
 import {
   loadAllInternalWallets,
   loadInternalWalletByAddress,
   exportInternalWallet,
-  removeInternalWallet
+  removeInternalWallet,
+  importInternalWallet,
 } from "@/lib/crypto/internalWallet";
 
 const WalletAuth: React.FC = () => {
@@ -33,6 +35,7 @@ const WalletAuth: React.FC = () => {
   const [exportAddr, setExportAddr] = useState<string | null>(null);
   const [exportMnemonic, setExportMnemonic] = useState<string | null>(null);
   const [confirmDeleteAddr, setConfirmDeleteAddr] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   // Refresh internal wallet list whenever popup opens
@@ -96,6 +99,22 @@ const WalletAuth: React.FC = () => {
     }
   };
 
+  const handleImportSubmit = async (mnemonic: string) => {
+    try {
+      setBusy(true);
+      const acc = await importInternalWallet(mnemonic);
+      await refreshInternalAddresses();
+      await activateInternalAddress(acc.addr);
+      setImportOpen(false);
+      setOpen(false);
+    } catch (e) {
+      console.error('Failed to import internal wallet:', e);
+      throw e;
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (!walletAddress) {
     return (
       <Popover open={open} onOpenChange={setOpen}>
@@ -107,7 +126,6 @@ const WalletAuth: React.FC = () => {
             <span className="hidden sm:inline">Connect Crypto Wallet</span>
           </Button>
         </PopoverTrigger>
-
         <PopoverContent align="start" side="bottom" onMouseEnter={() => setOpen(true)}
                         onMouseLeave={() => setOpen(false)} className="w-60 p-4 text-sm shadow-lg">
           <div className="mb-3">
@@ -130,24 +148,14 @@ const WalletAuth: React.FC = () => {
                   </Button>
                 </li>
               ))}
-              <li>
-                <Button variant="secondary" onClick={() => connect({kind: "internal"})}
-                        className="w-full justify-start text-sm">
-                  Internal
-                </Button>
-              </li>
             </ul>
-            {internalAddresses.length > 0 && (
-              <div className="mt-3">
-                <div className="text-xs text-muted-foreground mb-2">Saved internal wallets</div>
-                <InternalWalletList addresses={internalAddresses}
-                                    activeAddress={walletKind === 'internal' ? walletAddress : null}
-                                    isInternalActive={walletKind === 'internal'} onActivate={handleActivate}
-                                    onExport={handleExport} onDelete={handleDelete} compact/>
-              </div>
-            )}
+            <div className="mt-3">
+              <InternalWalletList addresses={internalAddresses}
+                                  activeAddress={walletKind === 'internal' ? walletAddress : null}
+                                  isInternalActive={walletKind === 'internal'} onActivate={handleActivate}
+                                  onCreate={handleCreate} onImport={() => setImportOpen(true)} onExport={handleExport} onDelete={handleDelete} compact/>
+            </div>
           </div>
-
           <div className="items-center justify-between text-xs text-muted-foreground">
             <span>
               You are on <strong className="text-foreground">{network}</strong>.
@@ -189,6 +197,16 @@ const WalletAuth: React.FC = () => {
               </div>
             )}
           </div>
+          {/* Modals */}
+          <ConfirmModal open={!!confirmDeleteAddr} title="Delete Internal Wallet" message={
+            <div>Are you sure you want to delete this internal wallet?<br/>
+              <CopyableField value={confirmDeleteAddr ?? ""} length={22}/>
+            </div>
+          } confirmLabel={busy ? 'Deleting…' : 'Delete'} confirmVariant="destructive" onConfirm={confirmDelete}
+                        onCancel={() => setConfirmDeleteAddr(null)}/>
+          <ExportModal open={exportOpen} address={exportAddr} mnemonic={exportMnemonic}
+                       onClose={() => setExportOpen(false)}/>
+          <ImportModal open={importOpen} onClose={() => setImportOpen(false)} onImport={handleImportSubmit}/>
         </PopoverContent>
       </Popover>
     );
@@ -222,18 +240,6 @@ const WalletAuth: React.FC = () => {
             <CopyableField value={walletAddress} length={22}/>
           </div>
         </div>
-
-        {/* Internal Wallets (if any) */}
-        {internalAddresses.length > 0 && (
-          <div>
-            <p className="text-muted-foreground text-xs mb-2">Saved Internal Wallets</p>
-            <InternalWalletList addresses={internalAddresses} activeAddress={walletAddress}
-                                isInternalActive={walletKind === 'internal'} onActivate={handleActivate}
-                                onCreate={walletKind === 'internal' ? handleCreate : undefined} onExport={handleExport}
-                                onDelete={handleDelete}/>
-          </div>
-        )}
-
         {/* Actions */}
         <div className="space-y-2">
           <Button onClick={disconnect}
@@ -262,15 +268,6 @@ const WalletAuth: React.FC = () => {
           <div className="text-muted-foreground text-xs text-right">[{network}]</div>
         </div>
 
-        {/* Modals */}
-        <ConfirmModal open={!!confirmDeleteAddr} title="Delete Internal Wallet" message={
-          <div>Are you sure you want to delete this internal wallet?<br/>
-            <CopyableField value={confirmDeleteAddr??""} length={22}/>
-          </div>
-        } confirmLabel={busy ? 'Deleting…' : 'Delete'} confirmVariant="destructive" onConfirm={confirmDelete}
-                      onCancel={() => setConfirmDeleteAddr(null)}/>
-        <ExportModal open={exportOpen} address={exportAddr} mnemonic={exportMnemonic}
-                     onClose={() => setExportOpen(false)}/>
       </PopoverContent>
     </Popover>
   );
