@@ -74,13 +74,18 @@ export function WalletProvider({children}: { children: ReactNode }) {
 
   const adapters = useMemo(() => walletAdapters[chain] ?? [], [chain])
 
-  const activeAdapter = useMemo(() => {
+  const activeAdapter: WalletAdapter | null = useMemo(() => {
+    // If internal is selected, that is the active adapter
+    if (walletKind === 'internal') return internalWalletAdapter
+
+    // Otherwise, choose an external adapter
     if (!adapters?.length) return null
     if (externalProviderId) {
       return adapters.find(a => a.id === externalProviderId) ?? adapters[0]
     }
-    return adapters[0]
-  }, [adapters, externalProviderId])
+    // Prefer an installed adapter, else first available
+    return adapters.find(a => a.isInstalled?.()) ?? adapters[0]
+  }, [walletKind, adapters, externalProviderId])
 
   const availableExternalProviders = useMemo(() => {
     return (adapters || []).map(a => ({id: a.id, name: a.name, installed: a.isInstalled ? a.isInstalled() : true}))
@@ -124,11 +129,15 @@ export function WalletProvider({children}: { children: ReactNode }) {
         }
 
         if (preferredKind === 'external') {
-          // Try to selected provider silently; if it fails, fall back to any installed adapter silently
-          const candidates = activeAdapter ? [activeAdapter, ...adapters.filter(a => a.id !== activeAdapter.id)] : adapters
+          // Try the selected provider silently; if it fails, fall back to others silently
+          const candidates = adapters ? [
+            externalProviderId ? adapters.find(a => a.id === externalProviderId) : undefined,
+            ...adapters
+          ].filter(Boolean) as WalletAdapter[] : []
+
           for (const a of candidates) {
             try {
-              const addr = await a.connect({silent: true})
+              const addr = await a.connect({ silent: true })
               if (addr) {
                 setWalletAddress(addr)
                 setWalletKind('external')
@@ -152,7 +161,7 @@ export function WalletProvider({children}: { children: ReactNode }) {
     }
 
     void attemptReconnect()
-  }, [chain, activeAdapter, adapters])
+  }, [chain, adapters, externalProviderId])
 
   // Subscribe to account/network changes of active adapter
   useEffect(() => {
@@ -181,7 +190,8 @@ export function WalletProvider({children}: { children: ReactNode }) {
     silent?: boolean
   }) => {
     try {
-      const targetKind = opts?.kind ?? 'external'
+      const storedKind = localStorage.getItem('walletKind') as WalletKind | null
+      const targetKind = opts?.kind ?? storedKind ?? 'external'
       const targetChain = opts?.chain ?? chain
       const desiredProviderId = opts?.providerId ?? externalProviderId ?? undefined
 
@@ -215,7 +225,7 @@ export function WalletProvider({children}: { children: ReactNode }) {
       console.error('Failed to connect wallet:', error)
       throw error
     }
-  }, [chain, externalProviderId])
+  }, [chain, externalProviderId, refreshInternalAddresses])
 
   const disconnect = useCallback(async () => {
     try {

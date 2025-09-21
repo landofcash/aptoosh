@@ -4,6 +4,7 @@ import {VitePWA} from 'vite-plugin-pwa'
 import path from 'path'
 import tailwindcss from "@tailwindcss/postcss";
 import autoprefixer from "autoprefixer";
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import {visualizer} from "rollup-plugin-visualizer";
 
 export default defineConfig({
@@ -41,6 +42,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    nodePolyfills(),
     visualizer({filename: "stats.html"}),
     VitePWA({
       registerType: 'autoUpdate',
