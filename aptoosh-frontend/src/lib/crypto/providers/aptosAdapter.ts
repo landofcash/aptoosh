@@ -8,6 +8,30 @@ import type {GetStorageResult} from "@/lib/crypto/types/GetStorageResult.ts";
 import type {CartItem} from "@/lib/cartStorage.ts";
 import {getTokenById} from "@/lib/tokenUtils.ts";
 
+type ProductOnChain = {
+  version: string | number;     // often comes back as a string (u64)
+  shop: string;                  // address as hex string
+  products_url: string;          // Move string
+  seller_pubkey: string;         // hex or base64, depending on how you stored it
+};
+
+const unwrapOptionVec = <T>(value: unknown): T | null => {
+  if (value == null) return null;
+
+  // vectors as plain arrays
+  if (Array.isArray(value)) {
+    return value.length > 0 ? (value[0] as T) : null;
+  }
+
+  // vectors as { vec: [...] }
+  const obj = value as { vec?: unknown };
+  if (Array.isArray(obj?.vec)) {
+    return obj.vec.length > 0 ? (obj.vec[0] as T) : null;
+  }
+
+  return null; // unknown shape
+};
+
 export const aptosAdapter: ChainAdapter = {
   name: "aptos",
   generateAccount: aptosUtils.generateAccountAptos,
@@ -195,7 +219,24 @@ export const aptosAdapter: ChainAdapter = {
       if (!response || !response.length || !response[0]) {
         throw new Error("Product not found");
       }
-      return response[0] as ProductData;
+      if (!Array.isArray(response) || response.length === 0) {
+        throw new Error("Unexpected empty response from view call");
+      }
+
+      const product = unwrapOptionVec<ProductOnChain>(response[0]);
+      if (!product) {
+        throw new Error("Product not found");
+      }
+
+      const versionNum = typeof product.version === 'string' ? Number(product.version) : product.version;
+
+      return {
+        version: versionNum,
+        seed,
+        shopWallet: product.shop,
+        productsUrl: product.products_url,
+        sellerPubKey: product.seller_pubkey,
+      } as ProductData;
     } catch (error) {
       console.error("Error viewing product:", error);
       throw error;
@@ -241,5 +282,6 @@ export const aptosAdapter: ChainAdapter = {
     if (n.includes('dev')) return 'devnet';
     if (n.includes('local')) return 'localnet';
     return name as NetworkId;
-  }
+  },
+
 };
