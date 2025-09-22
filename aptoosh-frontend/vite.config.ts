@@ -23,22 +23,6 @@ export default defineConfig({
   },
   build: {
     target: "es2020",
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes("node_modules")) {
-            if (id.includes("@aptos-labs/ts-sdk")) return "aptos";
-            if (id.includes("@zxing")) return "zxing";
-            if (id.includes("@walletconnect")) return "walletconnect";
-            if (id.includes("@noble")) return "noble";
-            if (id.includes("poseidon")) return "poseidon";
-            if (id.includes("react")) return "react";
-            if (id.includes("eciesjs") || id.includes("elliptic")) return "crypto";
-            return "vendor";
-          }
-        },
-      },
-    },
   },
   plugins: [
     react(),
@@ -66,6 +50,7 @@ export default defineConfig({
         ]
       },
       workbox: {
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
