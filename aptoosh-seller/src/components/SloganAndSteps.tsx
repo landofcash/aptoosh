@@ -15,7 +15,7 @@ const SloganAndSteps: React.FC<SloganAndStepsProps> = ({setShowInstallModal}) =>
       <Card className="shadow-xl border border-muted bg-white/80 dark:bg-black/40 backdrop-blur-sm">
         <CardHeader className="text-center space-y-3">
           <CardTitle className="text-base sm:text-4xl font-bold tracking-tight flex items-center justify-center gap-3">
-            <img src="/logo-t-g-32x32.png" alt="Algorand" className="h-8 w-8"/>
+            <img src="/logo-t-g-32x32.png" alt="Aptos" className="h-8 w-8"/>
             Welcome to {APP_NAME} Seller Portal
           </CardTitle>
           <p className="text-muted-foreground text-xs sm:text-base max-w-xl mx-auto">
@@ -65,7 +65,7 @@ const SloganAndSteps: React.FC<SloganAndStepsProps> = ({setShowInstallModal}) =>
               <p className="text-sm text-blue-700">
                 {APP_NAME} will generate unique QR codes for every product. <br/>
                 Print or share them — online or offline.<br/>
-                Use your current price tags or create new with Algoosh tag designer. </p>
+                Use your current price tags or create new with Aptoosh tag designer. </p>
             </div>
 
             {/* Step 4 */}

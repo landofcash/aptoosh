@@ -18,7 +18,7 @@ function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-muted-foreground">Algorand Network</span>
+            <span className="text-sm font-medium text-muted-foreground">Crypto Network</span>
             <div className="flex gap-2">
               <Button
                 variant={network === 'testnet' ? 'default' : 'outline'}

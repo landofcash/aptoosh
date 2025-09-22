@@ -51,7 +51,7 @@ const ProductQRCodeCard: React.FC<ProductQRCodeCardProps> = ({product, productCa
       </div>
       {/* Simplified IDs for print only */}
       <div className="hidden print:block text-[9px] text-gray-500 text-center font-mono space-y-0.5">
-        <div>Scan with ALGOOSH</div>
+        <div>Scan with APTOOSH</div>
         <div>Order Anytime</div>
       </div>
     </div>
