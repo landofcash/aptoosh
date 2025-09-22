@@ -9,6 +9,8 @@ import {priceToDisplayString} from '@/lib/tokenUtils'
 import TokenIcon from '@/components/TokenIcon'
 import type {ProductData} from "@/lib/syncService.ts";
 import {getChainAdapter} from "@/lib/crypto/cryptoUtils.ts";
+import type {NetworkId} from "@/context/wallet/types.ts";
+import {getCurrentConfig} from "@/config.ts";
 
 interface ProductRaw {
   ProductId: string
@@ -22,6 +24,7 @@ interface ProductRaw {
 type LocationState = {
   productSeed: string
   itemId: string
+  network: NetworkId
 } | null
 
 function ProductDetailPage() {
@@ -35,12 +38,18 @@ function ProductDetailPage() {
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false)
 
   useEffect(() => {
-    if (!state?.productSeed || !state?.itemId) return
-
+    if (!state?.productSeed || !state?.itemId || !state?.network) return
     const fetchProductData = async () => {
       setLoading(true)
       setError('')
       try {
+        if(state?.network !== getCurrentConfig().name){
+          const errorText = `This product is on ${state.network} network.
+           Please switch to ${getCurrentConfig().name} network to view this product.`
+          console.error(errorText)
+          setError(errorText)
+          return;
+        }
         // Read the product box content
         const chainAdapter = getChainAdapter();
         const productData = await chainAdapter.viewProductOnBlockchain(state.productSeed)
@@ -84,7 +93,7 @@ function ProductDetailPage() {
       }
     }
     fetchProductData()
-  }, [state?.productSeed, state?.itemId])
+  }, [state?.productSeed, state?.itemId, state?.network])
 
   const handleAddToCart = () => {
     if (!product || !productData) return

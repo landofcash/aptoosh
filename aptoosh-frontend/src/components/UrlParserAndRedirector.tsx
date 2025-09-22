@@ -31,18 +31,18 @@ const UrlParserAndRedirector: React.FC = () => {
 
         // Check if the hash data has the expected length for QR codes (44 characters)
         // QR codes use two 22-character base64-encoded UUIDs concatenated together
-        if (hashData.length !== 44) {
+        if (hashData.length !== 44 && hashData.length !== 45) {
           // Not a valid QR code hash, clear it and return
           window.location.hash = ''
           return
         }
 
         // Try to decode as base64 QR data
-        const [productSeed, itemId] = decodeConcatenatedIDs(hashData)
+        const [productSeed, itemId, network] = decodeConcatenatedIDs(hashData)
         //console.log('Decoded QR data:', productSeed, itemId)
         // Navigate to the product details page with the decoded data
         navigate('/product-details', {
-          state: {productSeed, itemId},
+          state: {productSeed, itemId, network},
           replace: true // Replace the current history entry to avoid back button issues
         })
 

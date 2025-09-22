@@ -1,6 +1,7 @@
 import type {NetworkId} from "@/context/wallet/types.ts";
 
-export const APP_VERSION = '0.2.2'
+declare const __APP_VERSION__: string;
+export const APP_VERSION = __APP_VERSION__
 export const APP_NAME='Aptoosh'
 export const BASE_URL='https://aptoosh.com'
 
@@ -122,6 +123,12 @@ export const getCurrentConfig = (): NetworkConfig => {
   return getConfig(network);
 };
 
+export const getNetworkIdFromQRCode = (value:string):NetworkId => {
+  if(value==="2")return "testnet";
+  if(value==="3")return "devnet";
+  return "mainnet";
+}
+
 // Aptos Explorer helpers
 export function explorerTxUrl(txHash: string, network?: NetworkId): string {
   const cfg = network ? getConfig(network) : getCurrentConfig();
@@ -143,4 +150,6 @@ export function explorerObjectUrl(objectAddress: string, network?: NetworkId): s
   const suffix = n === 'mainnet' ? '' : `?network=${n}`;
   return `${cfg.explorerBaseUrl}/object/${objectAddress}${suffix}`;
 }
+
+
 

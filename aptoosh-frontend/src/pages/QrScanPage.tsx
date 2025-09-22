@@ -53,11 +53,11 @@ function QrScanPage() {
             try {
               const scannedText = result.getText()
               const qrCodeData = extractQrData(scannedText)
-              const [productSeed, itemId] = decodeConcatenatedIDs(qrCodeData)
+              const [productSeed, itemId, network] = decodeConcatenatedIDs(qrCodeData)
               // Clear the URL hash immediately to prevent redirect loops
               window.location.hash = ''
               setScanning(false)
-              navigate('/product-details', {state: {productSeed, itemId}})
+              navigate('/product-details', {state: {productSeed, itemId, network}})
             } catch (e) {
               console.error('QR processing error:', e)
               const errorMessage = e instanceof Error ? e.message : 'Unknown error'
