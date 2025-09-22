@@ -10,7 +10,7 @@ interface TokenIconProps {
 
 const TokenIcon: React.FC<TokenIconProps> = ({assetId, size = 20, alt = '', className = ''}) => {
   const token = getTokenById(assetId);
-  const [imgSrc] = React.useState(token.img ?? `https://asa-list.tinyman.org/assets/${assetId}/icon.png`);
+  const [imgSrc] = React.useState(token.img ?? `/tokens/${assetId}-icon.png`);
   const [showFallback, setShowFallback] = React.useState(false);
 
   const handleError = () => {

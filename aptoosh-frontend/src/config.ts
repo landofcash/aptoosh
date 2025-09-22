@@ -108,7 +108,10 @@ const configs: Record<NetworkId, NetworkConfig> = {
     walletConnectProjectId: WALLETCONNECT_PROJECT_ID,
     approvedShopWallets: [],
     supportedTokens: [
-      { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
+      { id: 0, name: 'APT', decimals: 8, img:null, coinType: '0x1::aptos_coin::AptosCoin' },
+      { id: 1,
+        name: 'USDC', decimals: 6, img:null,
+        coinType: '0x69091fbab5f7d635ee7ac5098cf0c1efbe31d68fec0f2cd565e8d168daf52832::asset::USDC' },
     ],
     defaultGasUnitPrice: 100,
     maxGasAmount: 200_000,

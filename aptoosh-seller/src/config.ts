@@ -1,6 +1,6 @@
 import type {NetworkId} from "@/context/wallet/types.ts";
 
-export const APP_VERSION = '0.2.2'
+export const APP_VERSION = '0.2.3'
 export const APP_NAME='Aptoosh'
 export const BASE_URL='https://aptoosh.com'
 
@@ -58,7 +58,10 @@ const configs: Record<NetworkId, NetworkConfig> = {
     walletConnectProjectId: WALLETCONNECT_PROJECT_ID,
     approvedShopWallets: [],
     supportedTokens: [
-      { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
+      { id: 0, name: 'APT', decimals: 8, img:null, coinType: '0x1::aptos_coin::AptosCoin' },
+      { id: 1,
+        name: 'USDC', decimals: 6, img:null,
+        coinType: '0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b::asset::USDC' },
     ],
     defaultGasUnitPrice: 100,
     maxGasAmount: 200_000,
@@ -82,7 +85,10 @@ const configs: Record<NetworkId, NetworkConfig> = {
       '0x0000000000000000000000000000000000000000000000000000000000000001',
     ],
     supportedTokens: [
-      { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
+      { id: 0, name: 'APT', decimals: 8, img:null, coinType: '0x1::aptos_coin::AptosCoin' },
+      { id: 1,
+        name: 'USDC', decimals: 6, img:null,
+        coinType: '0x69091fbab5f7d635ee7ac5098cf0c1efbe31d68fec0f2cd565e8d168daf52832::asset::USDC' },
     ],
     defaultGasUnitPrice: 100,
     maxGasAmount: 200_000,
@@ -103,7 +109,10 @@ const configs: Record<NetworkId, NetworkConfig> = {
     walletConnectProjectId: WALLETCONNECT_PROJECT_ID,
     approvedShopWallets: [],
     supportedTokens: [
-      { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
+      { id: 0, name: 'APT', decimals: 8, img:null, coinType: '0x1::aptos_coin::AptosCoin' },
+      { id: 1,
+        name: 'USDC', decimals: 6, img:null,
+        coinType: '0x69091fbab5f7d635ee7ac5098cf0c1efbe31d68fec0f2cd565e8d168daf52832::asset::USDC' },
     ],
     defaultGasUnitPrice: 100,
     maxGasAmount: 200_000,

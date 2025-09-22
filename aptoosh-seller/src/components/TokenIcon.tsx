@@ -10,7 +10,7 @@ interface TokenIconProps {
 
 const TokenIcon: React.FC<TokenIconProps> = ({ assetId, size = 20, alt = '', className = '' }) => {
     const token = getTokenById(assetId);
-    const src = token.img ?? `/assets/${assetId}-icon.png`;
+    const src = token.img ?? `/tokens/${assetId}-icon.png`;
 
     return (
         <img

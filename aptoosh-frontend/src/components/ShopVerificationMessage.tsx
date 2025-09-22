@@ -19,7 +19,7 @@ const ShopVerificationMessage: React.FC<ShopVerificationMessageProps> = ({
       <div className={`flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md ${className}`}>
         <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0"/>
         <p className="text-xs text-blue-800">
-          <strong>Verified Shop:</strong> This is an Algoosh-verified merchant. </p>
+          <strong>Verified Shop:</strong> This is an Aptoosh-verified merchant. </p>
       </div>
     )
   }
@@ -28,9 +28,9 @@ const ShopVerificationMessage: React.FC<ShopVerificationMessageProps> = ({
     <div className={`flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md ${className}`}>
       <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0"/>
       <p className="text-xs text-amber-800">
-        <strong>Important:</strong> Delivery and refunds are handled by the shop, not Algoosh. Algoosh is not
+        <strong>Important:</strong> Delivery and refunds are handled by the shop, not Aptoosh. Aptoosh is not
         responsible for order fulfillment or customer service. Blockchain payments are final and can't be reversed by
-        Algoosh. </p>
+        Aptoosh. </p>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 {
-  "name": "Algoosh — Scan, Shop, Pay in a Flash",
-  "short_name": "Algoosh",
-  "description": "Shop with QR codes and pay instantly with crypto or card. Powered by Algoosh.",
+  "name": "Aptoosh — Scan, Shop, Pay in a Flash",
+  "short_name": "Aptoosh",
+  "description": "Shop with QR codes and pay instantly with crypto or card. Powered by Aptoosh.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
