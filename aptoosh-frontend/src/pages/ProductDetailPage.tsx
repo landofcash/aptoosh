@@ -45,7 +45,7 @@ function ProductDetailPage() {
       try {
         if(state?.network !== getCurrentConfig().name){
           const errorText = `This product is on ${state.network} network.
-           Please switch to ${getCurrentConfig().name} network to view this product.`
+           Please switch to ${state.network} network to view this product.`
           console.error(errorText)
           setError(errorText)
           return;
