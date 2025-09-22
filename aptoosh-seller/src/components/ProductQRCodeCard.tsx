@@ -5,7 +5,7 @@ import {priceToDisplayString} from '@/lib/tokenUtils'
 import {concatenateIDs} from '@/lib/qrCodeUtils'
 import TokenIcon from '@/components/TokenIcon'
 import CopyableField from '@/components/CopyableField'
-import {BASE_URL} from "@/config.ts";
+import {BASE_URL, getCurrentConfig} from "@/config.ts";
 
 interface ProductQRCodeCardProps {
   product: Product
@@ -13,9 +13,10 @@ interface ProductQRCodeCardProps {
 }
 
 const ProductQRCodeCard: React.FC<ProductQRCodeCardProps> = ({product, productCatalogueSeed}) => {
+  const config = getCurrentConfig();
   const generateQRData = (product: Product): string => {
     const itemUuid = product.ProductId
-    return `${BASE_URL}/#${concatenateIDs(productCatalogueSeed, itemUuid)}`
+    return `${BASE_URL}/#${concatenateIDs(productCatalogueSeed, itemUuid, config.name)}`
   }
 
   return (
@@ -53,6 +54,9 @@ const ProductQRCodeCard: React.FC<ProductQRCodeCardProps> = ({product, productCa
       <div className="hidden print:block text-[9px] text-gray-500 text-center font-mono space-y-0.5">
         <div>Scan with APTOOSH</div>
         <div>Order Anytime</div>
+        {(config.name !== "mainnet") && (
+          <div>[{config.name.toUpperCase()}]</div>
+        )}
       </div>
     </div>
   )

@@ -118,6 +118,18 @@ export const getCurrentConfig = (): NetworkConfig => {
   return getConfig(network);
 };
 
+export const getNetworkIdFromQRCode = (value:string):NetworkId => {
+  if(value==="2")return "testnet";
+  if(value==="3")return "devnet";
+  return "mainnet";
+}
+export const getNetworkIdForQRCode = (value:NetworkId):NetworkId => {
+  if(value==="testnet")return "2";
+  if(value==="devnet")return "3";
+  return "1";
+}
+
+
 // Aptos Explorer helpers
 export function explorerTxUrl(txHash: string, network?: NetworkId): string {
   const cfg = network ? getConfig(network) : getCurrentConfig();
