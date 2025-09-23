@@ -7,12 +7,13 @@ import {getAptosClient} from "@/lib/aptos/aptosClient.ts";
 import type {GetStorageResult} from "@/lib/crypto/types/GetStorageResult.ts";
 import type {CartItem} from "@/lib/cartStorage.ts";
 import {getTokenById} from "@/lib/tokenUtils.ts";
+import {hexToBytes} from "@/utils/encoding.ts";
 
 type ProductOnChain = {
   version: string | number;     // often comes back as a string (u64)
   shop: string;                  // address as hex string
   products_url: string;          // Move string
-  seller_pubkey: string;         // hex or base64, depending on how you stored it
+  seller_pubkey: string;         // hex
 };
 
 const unwrapOptionVec = <T>(value: unknown): T | null => {
@@ -235,7 +236,7 @@ export const aptosAdapter: ChainAdapter = {
         seed,
         shopWallet: product.shop,
         productsUrl: product.products_url,
-        sellerPubKey: product.seller_pubkey,
+        sellerPubKey: String.fromCharCode(...hexToBytes(product.seller_pubkey)),
       } as ProductData;
     } catch (error) {
       console.error("Error viewing product:", error);
