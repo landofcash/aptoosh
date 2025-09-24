@@ -1,6 +1,7 @@
 import type {InternalAccount} from "@/lib/crypto/types/InternalAccount.ts";
 import type {GetStorageResult} from "@/lib/crypto/types/GetStorageResult.ts";
 import type {NetworkId, WalletAdapter} from "@/context/wallet/types.ts";
+import type {ProductData} from "@/lib/syncService.ts";
 
 export interface ChainAdapter {
   readonly name: string; // e.g., 'aptos'
@@ -75,9 +76,6 @@ export interface ChainAdapter {
     senderAddress: string
   ): Promise<string>
 
-  // Encrypted storage access
-  getStorageData(storageKey: string): Promise<GetStorageResult>;
-
   /**
    * Resolves an address to name (Aptos Name Service (ANS), ENS on Ethereum or NFD on Algorand.)
    * @param address The address to resolve
@@ -92,4 +90,10 @@ export interface ChainAdapter {
   resolveNameToAddress(name: string): Promise<string | null>
 
   mapNetworkName(name?: string): NetworkId
+
+  viewProductOnBlockchain(seed: string): Promise<ProductData>
+
+  viewBuyerData(seed: string): Promise<GetStorageResult>
+
+  viewSellerData(seed: string): Promise<GetStorageResult>
 }

@@ -16,6 +16,20 @@ type ProductOnChain = {
   seller_pubkey: string;         // hex
 };
 
+// Helper to unwrap Move `option<T>` shaped as { vec: [] | [T] } or a plain array T[]
+function firstFromMoveValue<T>(v: unknown): T | undefined {
+  if (Array.isArray(v)) {
+    return v[0] as T | undefined;
+  }
+  const hasVecProperty = (x: unknown): x is { vec: unknown } =>
+    typeof x === 'object' && x !== null && 'vec' in (x as Record<string, unknown>);
+  if (hasVecProperty(v)) {
+    const arr = v.vec;
+    if (Array.isArray(arr)) return arr[0] as T | undefined;
+  }
+  return undefined;
+}
+
 const unwrapOptionVec = <T>(value: unknown): T | null => {
   if (value == null) return null;
 
@@ -32,6 +46,7 @@ const unwrapOptionVec = <T>(value: unknown): T | null => {
 
   return null; // unknown shape
 };
+
 
 export const aptosAdapter: ChainAdapter = {
   name: "aptos",
@@ -260,7 +275,7 @@ export const aptosAdapter: ChainAdapter = {
       if (!Array.isArray(response) || response.length === 0) {
         throw new Error("Unexpected empty response from view call");
       }
-      const data = response[0].vec[0];
+      const data = firstFromMoveValue<string>(response[0]);
       if(!data) return {data: null, isFound: false}
       return {data: String.fromCharCode(...hexToBytes(data?.toString())), isFound: true}
     } catch (error) {
@@ -285,7 +300,7 @@ export const aptosAdapter: ChainAdapter = {
       if (!Array.isArray(response) || response.length === 0) {
         throw new Error("Unexpected empty response from view call");
       }
-      const data = response[0].vec[0];
+      const data = firstFromMoveValue<string>(response[0]);
       if(!data) return {data: null, isFound: false}
       return {data: String.fromCharCode(...hexToBytes(data?.toString())), isFound: true}
     } catch (error) {

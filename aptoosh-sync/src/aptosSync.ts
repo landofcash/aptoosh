@@ -137,6 +137,24 @@ function hexToBase64(hex: string): string {
 function mapOrderToCache(seed: string, m: any): OrderCacheEntry {
   const toBig = (v: any) => (v === null || v === undefined) ? 0n : BigInt(String(v));
   const toStr = (v: any) => v === null || v === undefined ? '' : String(v);
+  const fromOptionAddress = (v: any): string => {
+    if (v === null || v === undefined) return '';
+    if (typeof v === 'string') return v;
+    if (typeof v === 'object') {
+      // Common Aptos JSON for 0x1::option::Option<T>
+      const maybeVec = (v as any).vec;
+      if (Array.isArray(maybeVec)) {
+        return maybeVec.length > 0 ? String(maybeVec[0]) : '';
+      }
+      if ('some' in v) {
+        const some = (v as any).some;
+        return some === null || some === undefined ? '' : String(some);
+      }
+      if ('none' in v) return '';
+    }
+    // Fallback to string conversion
+    return String(v);
+  };
   const buyer = toStr(m.buyer);
   const seller = toStr(m.seller);
   return {
@@ -151,7 +169,7 @@ function mapOrderToCache(seed: string, m: any): OrderCacheEntry {
     priceToken: 0n, // derive from price_token_tag if needed
     seller: seller,
     buyer: buyer,
-    payer: toStr(m.payer ?? ''),
+    payer: fromOptionAddress(m.payer),
     buyerPubKey: hexToString(toStr(m.buyer_pubkey ?? '')),
     sellerPubKey: hexToString(toStr(m.seller_pubkey ?? '')),
     encryptedSymKeyBuyer: hexToString(toStr(m.enc_symkey_buyer ?? '')),

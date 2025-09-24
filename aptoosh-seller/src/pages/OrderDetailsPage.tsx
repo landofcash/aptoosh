@@ -185,8 +185,8 @@ function OrderDetailsPage() {
       try {
         // Fetch the raw encrypted delivery payload from the chain
 
-        const decodedPayload = await getChainAdapter().getStorageData(order.seed)
-        if(!decodedPayload.isFound) {
+        const decodedPayload = await getChainAdapter().viewBuyerData(order.seed)
+        if (!decodedPayload.isFound) {
           setPayloadLoadError(`Failed to read delivery data "${order.seed}", Not found`)
           return
         }
@@ -227,7 +227,7 @@ function OrderDetailsPage() {
 
     try {
       // Sign the product seed with the wallet to generate the seller's key pair
-      const dataToSign = signPrefix + atob(order.productSeed)
+      const dataToSign = signPrefix + order.productSeed
       const signedBytes = await signMessage(
         dataToSign,
         "Sign seed for delivery info decryption"
@@ -489,7 +489,7 @@ function OrderDetailsPage() {
               <div className="grid grid-cols-1 gap-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-muted-foreground">Product Seed:</span>
-                  <CopyableField value={atob(order.productSeed)} length={22} mdLength={22} small={true}/>
+                  <CopyableField value={order.productSeed} length={22} mdLength={22} small={true}/>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -549,19 +549,19 @@ function OrderDetailsPage() {
               <div className="space-y-3">
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">Seller:</div>
-                  <AddressWithName value={order.seller} length={30} mdLength={63}/>
+                  <AddressWithName value={order.seller} length={30} mdLength={70}/>
                 </div>
 
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">Buyer:</div>
-                  <AddressWithName value={order.buyer} length={30} mdLength={63}/>
+                  <AddressWithName value={order.buyer} length={30} mdLength={70}/>
                 </div>
 
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">Payer:</div>
-                  {order.payer === "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ" ?
+                  {order.payer === "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ" || order.payer === "" ?
                     (<div className="text-sm">----</div>) : (
-                      <AddressWithName value={order.payer} length={22} mdLength={63}/>
+                      <AddressWithName value={order.payer} length={22} mdLength={70}/>
                     )}
                 </div>
               </div>
@@ -911,12 +911,12 @@ function OrderDetailsPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">Buyer Public Key:</div>
-                  <CopyableField value={order.buyerPubKey} length={30} mdLength={63} small={true}/>
+                  <CopyableField value={order.buyerPubKey} length={30} mdLength={70} small={true}/>
                 </div>
 
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">Seller Public Key:</div>
-                  <CopyableField value={order.sellerPubKey} length={30} mdLength={63} small={true}/>
+                  <CopyableField value={order.sellerPubKey} length={30} mdLength={70} small={true}/>
                 </div>
               </div>
             </div>
@@ -929,12 +929,12 @@ function OrderDetailsPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">Buyer Encrypted Key:</div>
-                  <CopyableField value={order.encryptedSymKeyBuyer} length={30} mdLength={63} small={true}/>
+                  <CopyableField value={order.encryptedSymKeyBuyer} length={30} mdLength={70} small={true}/>
                 </div>
 
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">Seller Encrypted Key:</div>
-                  <CopyableField value={order.encryptedSymKeySeller} length={30} mdLength={63} small={true}/>
+                  <CopyableField value={order.encryptedSymKeySeller} length={30} mdLength={70} small={true}/>
                 </div>
               </div>
             </div>
@@ -947,18 +947,18 @@ function OrderDetailsPage() {
               <div className="space-y-3">
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">Symmetric Key Hash:</div>
-                  <CopyableField value={order.symKeyHash} length={30} mdLength={63} small={true}/>
+                  <CopyableField value={order.symKeyHash} length={30} mdLength={70} small={true}/>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <div>
                     <div className="text-sm font-medium text-muted-foreground mb-1">Buyer Payload Hash:</div>
-                    <CopyableField value={order.payloadHashBuyer} length={30} mdLength={63} small={true}/>
+                    <CopyableField value={order.payloadHashBuyer} length={30} mdLength={70} small={true}/>
                   </div>
 
                   <div>
                     <div className="text-sm font-medium text-muted-foreground mb-1">Seller Payload Hash:</div>
-                    <CopyableField value={order.payloadHashSeller} length={30} mdLength={63} small={true}/>
+                    <CopyableField value={order.payloadHashSeller} length={30} mdLength={70} small={true}/>
                   </div>
                 </div>
               </div>
