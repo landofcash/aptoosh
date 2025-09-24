@@ -23,10 +23,8 @@ const AddressDisplay: React.FC<AddressDisplayProps> = ({
   useEffect(() => {
     const resolveAddress = async () => {
       try {
-        console.log('AddressDisplay: Resolving NFD for:', value);
         setLoading(true);
         const resolvedName = await resolveName(value);
-        console.log('AddressDisplay resolved:', resolvedName);
         setName(resolvedName);
       } catch (error) {
         console.error('AddressDisplay error resolving:', error);

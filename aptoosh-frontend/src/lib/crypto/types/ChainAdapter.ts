@@ -105,7 +105,10 @@ export interface ChainAdapter {
 
   viewProductOnBlockchain(seed: string): Promise<ProductData>
 
-  getStorageData(seed: string): Promise<GetStorageResult>
+  viewBuyerData(seed: string): Promise<GetStorageResult>
+
+  viewSellerData(seed: string): Promise<GetStorageResult>
+
 
   /**
    * Resolves an address to name (Aptos Name Service (ANS), ENS on Ethereum or NFD on Algorand.)

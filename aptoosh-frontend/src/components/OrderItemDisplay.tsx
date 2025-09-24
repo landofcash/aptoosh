@@ -84,7 +84,9 @@ const OrderItemDisplay: React.FC<OrderItemDisplayProps> = ({order}) => {
     }
     try {
       const decryptedText = await decryptAES(decryptedAESKey, encryptedData)
+      result.encryptedData = encryptedData
       result.decryptedText = decryptedText
+      result.notFound = false
       result.payloadHash = b64FromBytes(await sha256(new TextEncoder().encode(decryptedText)))
       return result
     } catch (err) {
@@ -126,7 +128,7 @@ const OrderItemDisplay: React.FC<OrderItemDisplayProps> = ({order}) => {
 
       // Step 4: Decrypt both buyer and seller boxes using the same AES key
       const chainAdapter = getChainAdapter()
-      const encryptedBuyerData = await chainAdapter.getStorageData(`b-${order.seed}`)
+      const encryptedBuyerData = await chainAdapter.viewBuyerData(order.seed)
 
       let buyerResult: DecryptedBoxResult = {
         decryptedText: null,
@@ -140,7 +142,7 @@ const OrderItemDisplay: React.FC<OrderItemDisplayProps> = ({order}) => {
       }
       setBuyerDecryptionResult(buyerResult)
 
-      const encryptedSellerData = await chainAdapter.getStorageData(`s-${order.seed}`)
+      const encryptedSellerData = await chainAdapter.viewSellerData(order.seed)
       let sellerResult: DecryptedBoxResult = {
         decryptedText: null,
         error: null,

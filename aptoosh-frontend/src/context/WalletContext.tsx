@@ -76,11 +76,12 @@ export function WalletProvider({children}: { children: ReactNode }) {
 
   const activeAdapter = useMemo(() => {
     if (!adapters?.length) return null
+    if (walletKind === 'internal') return internalWalletAdapter
     if (externalProviderId) {
       return adapters.find(a => a.id === externalProviderId) ?? adapters[0]
     }
     return adapters[0]
-  }, [adapters, externalProviderId])
+  }, [adapters, externalProviderId, walletKind])
 
   const availableExternalProviders = useMemo(() => {
     return (adapters || []).map(a => ({id: a.id, name: a.name, installed: a.isInstalled ? a.isInstalled() : true}))

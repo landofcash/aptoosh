@@ -244,27 +244,54 @@ export const aptosAdapter: ChainAdapter = {
     }
   },
 
-  async getStorageData(key: string): Promise<GetStorageResult> {
+  async viewBuyerData(seed: string): Promise<GetStorageResult>{
     const client = getAptosClient();
-
     try {
-      const response = await client.view(
-        {
-          payload: {
-            function: `${getCurrentConfig().account}::aptoosh::get_storage_data`,
-            typeArguments: [],
-            functionArguments: [key],
-          }
-        }
-      )
-      if (!response || !response.length || !response[0]) {
-
+      const mf: `${string}::${string}::${string}` = `${getCurrentConfig().account}::orders::get_buyer_blob`;
+      const payload = {
+        function: mf,
+        typeArguments: [],
+        functionArguments: [seed],
       }
+      const response = await client.view({payload})
+      if (!response || !response.length || !response[0]) {
+        return {data: null, isFound: false}
+      }
+      if (!Array.isArray(response) || response.length === 0) {
+        throw new Error("Unexpected empty response from view call");
+      }
+      const data = response[0].vec[0];
+      if(!data) return {data: null, isFound: false}
+      return {data: String.fromCharCode(...hexToBytes(data?.toString())), isFound: true}
     } catch (error) {
-      console.error("Error getStorageData:", error);
+      console.error("Error viewSellerData:", error);
       throw error;
     }
-    return {data: null, isFound: false}
+  },
+
+  async viewSellerData(seed: string): Promise<GetStorageResult>{
+    const client = getAptosClient();
+    try {
+      const mf: `${string}::${string}::${string}` = `${getCurrentConfig().account}::orders::get_seller_blob`;
+      const payload = {
+        function: mf,
+        typeArguments: [],
+        functionArguments: [seed],
+      }
+      const response = await client.view({payload})
+      if (!response || !response.length || !response[0]) {
+        return {data: null, isFound: false}
+      }
+      if (!Array.isArray(response) || response.length === 0) {
+        throw new Error("Unexpected empty response from view call");
+      }
+      const data = response[0].vec[0];
+      if(!data) return {data: null, isFound: false}
+      return {data: String.fromCharCode(...hexToBytes(data?.toString())), isFound: true}
+    } catch (error) {
+      console.error("Error viewSellerData:", error);
+      throw error;
+    }
   },
 
   async resolveAddressToName(address: string): Promise<string | null> {

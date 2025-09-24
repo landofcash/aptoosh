@@ -26,7 +26,7 @@ type PaymentStep = 1 | 2
 
 function PayWithCryptoPage() {
   const {order, clearOrder} = useOrder()
-  const {walletAddress, walletKind, connect, signMessage, walletAdapter} = useWallet()
+  const {walletAddress, connect, signMessage, walletAdapter} = useWallet()
   const navigate = useNavigate()
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle')
   const [currentStep, setCurrentStep] = useState<PaymentStep>(1)
@@ -220,7 +220,6 @@ function PayWithCryptoPage() {
   // Validate single token requirement
   const tokenEntries = Object.entries(tokenTotals)
   const hasMultipleTokens = tokenEntries.length > 1
-  const isPeraWallet = walletKind === 'external' && walletAddress;
 
   return (
     <div className="min-h-screen bg-background flex items-start justify-center px-4 py-8 sm:py-16">
@@ -353,12 +352,12 @@ function PayWithCryptoPage() {
                   {paymentStatus === 'idle' && (
                     <div className="text-center space-y-2">
                       <p className="text-muted-foreground">
-                        {!isPeraWallet ? 'Please connect your Aptos wallet to continue' :
+                        {!walletAdapter ? 'Please connect your Aptos wallet to continue' :
                           currentStep === 1 ? 'Ready to sign order seed' : 'Ready to process payment'}
                       </p>
-                      {isPeraWallet && (
+                      {walletAdapter && walletAddress && (
                         <p className="text-sm font-mono bg-muted p-2 rounded">
-                          Connected: {walletAddress.slice(0, 8)}...{walletAddress.slice(-8)}
+                          Connected {walletAdapter.name}: {walletAddress.slice(0, 8)}...{walletAddress.slice(-8)}
                         </p>
                       )}
                     </div>
@@ -525,7 +524,7 @@ function PayWithCryptoPage() {
           <div className="space-y-3">
             {paymentStatus === 'idle' && (
               <>
-                {!isPeraWallet ? (
+                {!walletAdapter ? (
                   <Button className="w-full" size="lg" onClick={handleConnectWallet}>
                     <Wallet className="mr-2 h-5 w-5"/>
                     Connect The Wallet
@@ -565,7 +564,7 @@ function PayWithCryptoPage() {
           </div>
 
           {/* Security Notice */}
-          {paymentStatus === 'idle' && isPeraWallet && !hasMultipleTokens && (
+          {paymentStatus === 'idle' && walletAdapter && !hasMultipleTokens && (
             <div className="text-xs text-muted-foreground text-center space-y-1">
               <p>🔒 Your transaction will be securely processed on the blockchain</p>
               <p>⚡ Fast confirmation times</p>

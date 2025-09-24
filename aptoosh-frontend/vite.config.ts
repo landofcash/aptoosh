@@ -6,7 +6,7 @@ import tailwindcss from "@tailwindcss/postcss";
 import autoprefixer from "autoprefixer";
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import {visualizer} from "rollup-plugin-visualizer";
-import pkg from './package.json' assert { type: 'json' }
+import pkg from './package.json' with { type: 'json' }
 
 export default defineConfig({
   resolve: {
