@@ -121,7 +121,7 @@ const WalletAuth: React.FC = () => {
         <PopoverTrigger asChild>
           <Button onClick={() => connect({kind: "external", chain: "aptos"})} onMouseEnter={() => setOpen(true)}
                   onMouseLeave={() => setOpen(false)}
-                  className="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 text-white cursor-pointer">
+                  className="px-3 py-1 text-sm bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer">
             <WalletIcon className="w-4 h-4"/>
             <span className="hidden sm:inline">Connect Crypto Wallet</span>
           </Button>

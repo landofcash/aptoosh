@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b31442be-9003-4fae-9eb3-d6315332c15b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../aptoosh-frontend/src/components/AddressDisplay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-frontend/src/components/AddressDisplay.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../aptoosh-frontend/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-frontend/vite.config.ts" afterDir="false" />
-    </list>
+    <list default="true" id="b31442be-9003-4fae-9eb3-d6315332c15b" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -113,6 +110,7 @@
       <workItem from="1758370045419" duration="15500000" />
       <workItem from="1758468774497" duration="7076000" />
       <workItem from="1758584638525" duration="1153000" />
+      <workItem from="1758652721251" duration="5434000" />
     </task>
     <servers />
   </component>
