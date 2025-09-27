@@ -183,9 +183,9 @@ function MyOrdersPage() {
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm font-medium text-muted-foreground">Amount:</span>
                       <div className="flex items-center gap-1">
-                        <TokenIcon assetId={parseInt(order.priceToken)} size={16} />
+                        <TokenIcon assetId={order.priceToken} size={16} />
                         <span className="font-semibold text-green-600 text-sm">
-                          {priceToDisplayString(parseInt(order.priceToken), parseInt(order.amount))}
+                          {priceToDisplayString(order.priceToken, parseInt(order.amount))}
                         </span>
                       </div>
                     </div>

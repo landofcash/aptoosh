@@ -29,7 +29,8 @@ interface Product {
   Name: string;
   Description: string;
   Price: number;
-  PriceToken: number;
+  // Store coinType string
+  PriceToken: string;
   Image: string;
   LocalFile?: File;
 }
@@ -42,12 +43,13 @@ type EditableProduct = {
   Name: string;
   Description: string;
   Price: string;       // full-unit price
-  PriceToken: number;
+  // coinType string
+  PriceToken: string;
   LocalFile?: File;
 };
 
 function toEditableProduct(product: Product, tokens: TokenConfig[]): EditableProduct {
-  const token = tokens.find(t => t.id === product.PriceToken);
+  const token = tokens.find(t => t.coinType === product.PriceToken);
   const decimals = token?.decimals ?? 0;
   return {
     Name: product.Name,
@@ -67,12 +69,12 @@ function CatalogueEditPage() {
 
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const [products, setProducts] = useState<Product[]>([]);
-  const [lastSelectedTokenId, setLastSelectedTokenId] = useState<number>(supportedTokens[0]?.id ?? 0);
+  const [lastSelectedTokenId, setLastSelectedTokenId] = useState<string>(supportedTokens[0]?.coinType ?? '');
   const [newProduct, setNewProduct] = useState<EditableProduct>({
     Name: '',
     Description: '',
     Price: '',
-    PriceToken: supportedTokens[0]?.id ?? 0,
+    PriceToken: supportedTokens[0]?.coinType ?? '',
     LocalFile: undefined,
   });
   const [cdnPath, setCdnPath] = useState<string>()
@@ -139,7 +141,7 @@ function CatalogueEditPage() {
     const filename = `${cdnPath}.${imageId}.${ext}`;
     const imageUrl = `${config.cdnBasePath}/${filename}`;
 
-    const selectedToken = supportedTokens.find(t => t.id === newProduct.PriceToken);
+    const selectedToken = supportedTokens.find(t => t.coinType === newProduct.PriceToken);
     const decimals = selectedToken?.decimals ?? 0;
 
     const parsedPrice = parseFloat(newProduct.Price || '0');
@@ -284,12 +286,12 @@ function CatalogueEditPage() {
             </div>
           ) : (
             products.map((product) => {
-              const token = supportedTokens.find((t) => t.id === product.PriceToken);
+              const token = supportedTokens.find((t) => t.coinType === product.PriceToken);
               if (!token) {
                 // show an inline error for this one
                 return (
                   <div key={product.ProductId} className="p-4 bg-red-50 text-red-700 rounded">
-                    ⚠️ Unsupported token (ID={product.PriceToken}) for “{product.Name}” </div>
+                    ⚠️ Unsupported token (coinType={product.PriceToken}) for “{product.Name}” </div>
                 );
               }
               return (
@@ -456,10 +458,10 @@ function CatalogueEditPage() {
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={!canChangeToken()} value={newProduct.PriceToken} onChange={(e) => setNewProduct({
                       ...newProduct,
-                      PriceToken: parseInt(e.target.value)
+                      PriceToken: e.target.value
                     })}>
                       {supportedTokens.map((token) => (
-                        <option key={token.id} value={token.id}>{token.name}</option>
+                        <option key={token.coinType ?? token.id} value={token.coinType ?? ''}>{token.name}</option>
                       ))}
                     </select>
                   </div>

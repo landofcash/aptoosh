@@ -29,7 +29,7 @@ import {
 import {type Order} from '@/lib/syncService'
 import CopyableField from '@/components/CopyableField'
 import TokenIcon from '@/components/TokenIcon'
-import {priceToDisplayString, getTokenById} from '@/lib/tokenUtils'
+import {priceToDisplayString, getTokenByType} from '@/lib/tokenUtils'
 import {formatUtcDate} from '@/lib/dateUtils'
 import {useWallet} from '@/context/WalletContext'
 import {generateKeyPairFromB64} from '@/utils/keygen'
@@ -434,12 +434,12 @@ function OrderDetailsPage() {
   }
 
   // Get token information for display
-  const getTokenDisplay = (tokenId: string) => {
+  const getTokenDisplay = (coinType: string) => {
     try {
-      const token = getTokenById(parseInt(tokenId))
-      return `${token.name} (${tokenId})`
+      const token = getTokenByType(coinType)
+      return `${token.name} (${coinType})`
     } catch {
-      return `Token (${tokenId})`
+      return `Token (${coinType})`
     }
   }
 
@@ -495,7 +495,7 @@ function OrderDetailsPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-muted-foreground">Price Token:</span>
                   <div className="flex items-center gap-2">
-                    <TokenIcon assetId={parseInt(order.priceToken)} size={20}/>
+                    <TokenIcon assetId={order.priceToken} size={20}/>
                     <span className="text-sm">{getTokenDisplay(order.priceToken)}</span>
                   </div>
                 </div>
@@ -503,7 +503,7 @@ function OrderDetailsPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-muted-foreground">Amount:</span>
                   <div className="flex items-center gap-2">
-                    <TokenIcon assetId={parseInt(order.priceToken)} size={18}/>
+                    <TokenIcon assetId={order.priceToken} size={18}/>
                     <span className="font-semibold text-green-600">
                       {priceToDisplayString(order.priceToken, parseInt(order.amount))}
                     </span>

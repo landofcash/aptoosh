@@ -6,7 +6,7 @@ import type {ProductData} from "@/lib/syncService.ts";
 import {getAptosClient} from "@/lib/aptos/aptosClient.ts";
 import type {GetStorageResult} from "@/lib/crypto/types/GetStorageResult.ts";
 import {hexToBytes} from "@/utils/encoding.ts";
-import {getTokenById} from "@/lib/tokenUtils.ts";
+import {getTokenByType} from "@/lib/tokenUtils.ts";
 
 type ProductOnChain = {
   version: string | number;     // often comes back as a string (u64)
@@ -94,15 +94,13 @@ export const aptosAdapter: ChainAdapter = {
     seed: string,
     payloadHashSeller: string,
     payloadEncrypted: string,
-    tokenIds: number[]|string[],
+    tokenTypes: string[],
   ): Promise<string> {
     console.log('Refuse order:', walletAdapter.name, seed, payloadHashSeller);
     if (!seed || seed.length !== 22) {
       throw new Error("Seed must be a 22-character string");
     }
-    // Replace the single coinType line with:
-    const type_arguments = tokenIds.map(tokenId =>
-      getTokenById(tokenId).coinType || '0x1::aptos_coin::AptosCoin'
+    const type_arguments = tokenTypes.map(tokenType => getTokenByType(tokenType).coinType
     );
 
     const payload: EntryFunctionPayload = {
@@ -171,7 +169,7 @@ export const aptosAdapter: ChainAdapter = {
     }
   },
 
-  async viewBuyerData(seed: string): Promise<GetStorageResult>{
+  async viewBuyerData(seed: string): Promise<GetStorageResult> {
     const client = getAptosClient();
     try {
       const mf: `${string}::${string}::${string}` = `${getCurrentConfig().account}::orders::get_buyer_blob`;
@@ -188,7 +186,7 @@ export const aptosAdapter: ChainAdapter = {
         throw new Error("Unexpected empty response from view call");
       }
       const data = firstFromMoveValue<string>(response[0]);
-      if(!data) return {data: null, isFound: false}
+      if (!data) return {data: null, isFound: false}
       return {data: String.fromCharCode(...hexToBytes(data?.toString())), isFound: true}
     } catch (error) {
       console.error("Error viewSellerData:", error);
@@ -196,7 +194,7 @@ export const aptosAdapter: ChainAdapter = {
     }
   },
 
-  async viewSellerData(seed: string): Promise<GetStorageResult>{
+  async viewSellerData(seed: string): Promise<GetStorageResult> {
     const client = getAptosClient();
     try {
       const mf: `${string}::${string}::${string}` = `${getCurrentConfig().account}::orders::get_seller_blob`;
@@ -213,7 +211,7 @@ export const aptosAdapter: ChainAdapter = {
         throw new Error("Unexpected empty response from view call");
       }
       const data = firstFromMoveValue<string>(response[0]);
-      if(!data) return {data: null, isFound: false}
+      if (!data) return {data: null, isFound: false}
       return {data: String.fromCharCode(...hexToBytes(data?.toString())), isFound: true}
     } catch (error) {
       console.error("Error viewSellerData:", error);

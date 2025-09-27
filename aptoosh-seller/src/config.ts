@@ -16,8 +16,7 @@ export interface TokenConfig {
   name: string;
   decimals: number;
   img: string | null;
-  // Optional Aptos coin type string for future use
-  coinType?: string;
+  coinType: string;
 }
 
 export interface AptosEndpoints {

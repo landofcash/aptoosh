@@ -4,14 +4,13 @@ export function getSupportedTokens() {
     return getCurrentConfig().supportedTokens;
 }
 export function getTokenById(id:number|string) {
-  const res = getSupportedTokens()
-    .find((t) => t.id === Number(id));
+  const res = getSupportedTokens().find((t) => t.id === Number(id));
   if(res===undefined) throw new Error("Token not found");
   return res;
 }
 export function getTokenByType(coinType:string) {
-    const res = getSupportedTokens()
-        .find((t) => t.coinType === coinType);
+    if(coinType=='0') return getSupportedTokens()[0];
+    const res = getSupportedTokens().find((t) => t.coinType === coinType);
     if(res===undefined) throw new Error("Token not found");
     return res;
 }
@@ -31,7 +30,7 @@ export function priceToBaseUnits(token: number | TokenConfig,price: string | num
 }
 
 export function priceToDisplayString(coinType: string, price: number, displayName:boolean = true): string {
-    const token = getTokenById(coinType);
+    const token = getTokenByType(coinType);
     const value = price / 10 ** token.decimals;
     const formatted = value.toLocaleString(undefined, {
         minimumFractionDigits: 0,

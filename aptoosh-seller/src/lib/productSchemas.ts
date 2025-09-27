@@ -2,7 +2,8 @@ import {z} from 'zod'
 
 export const ProductSchema = z.object({
   ProductId: z.string(),
-  PriceToken: z.number().int().nonnegative(),
+  // Store coinType string for the token
+  PriceToken: z.string(),
   Price: z.number().int().positive(),
   Name: z.string().min(1),
   Description: z.string(),
