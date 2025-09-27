@@ -75,7 +75,7 @@ function CartPage() {
       const itemTotal = item.price * BigInt(item.quantity)
       totals[tokenId] = (totals[tokenId] || 0n) + itemTotal
       return totals
-    }, {} as Record<number, bigint>)
+    }, {} as Record<string, bigint>)
 
     // Create default delivery info
     const defaultDeliveryInfo = {
@@ -117,7 +117,7 @@ function CartPage() {
     const itemTotal = item.price * BigInt(item.quantity)
     totals[tokenId] = (totals[tokenId] || 0n) + itemTotal
     return totals
-  }, {} as Record<number, bigint>)
+  }, {} as Record<string, bigint>)
 
   return (
     <div className="min-h-screen bg-background flex items-start justify-center px-4 py-8 sm:py-16">
@@ -144,7 +144,7 @@ function CartPage() {
                     const itemTotal = item.price * BigInt(item.quantity)
                     totals[tokenId] = (totals[tokenId] || 0n) + itemTotal
                     return totals
-                  }, {} as Record<number, bigint>)
+                  }, {} as Record<string, bigint>)
 
                   return (
                     <CardSlim key={shopWallet}>
@@ -212,9 +212,9 @@ function CartPage() {
                                   {index === 0 ? 'Shop Total:' : ''}
                                 </span>
                                 <div className="flex items-center gap-2">
-                                  <TokenIcon assetId={Number(tokenId)} size={20}/>
+                                  <TokenIcon assetId={tokenId} size={20}/>
                                   <span className="font-bold">
-                                    {priceToDisplayString(Number(tokenId), total)}
+                                    {priceToDisplayString(tokenId, total)}
                                   </span>
                                 </div>
                               </div>
@@ -245,9 +245,9 @@ function CartPage() {
                         {index === 0 ? 'Grand Total:' : ''}
                       </span>
                       <div className="flex items-center gap-2">
-                        <TokenIcon assetId={Number(tokenId)} size={20}/>
+                        <TokenIcon assetId={tokenId} size={20}/>
                         <span className="font-bold">
-                          {priceToDisplayString(Number(tokenId), total)}
+                          {priceToDisplayString(tokenId, total)}
                         </span>
                       </div>
                     </div>

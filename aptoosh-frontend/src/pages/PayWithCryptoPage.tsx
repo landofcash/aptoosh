@@ -263,9 +263,9 @@ function PayWithCryptoPage() {
                 {Object.entries(tokenTotals).map(([tokenId, total]) => (
                   <div key={tokenId} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <TokenIcon assetId={Number(tokenId)} size={20}/>
+                      <TokenIcon assetId={tokenId} size={20}/>
                       <span className="font-bold">
-                        {priceToDisplayString(Number(tokenId), total)}
+                        {priceToDisplayString(tokenId, total)}
                       </span>
                     </div>
                   </div>

@@ -4,31 +4,33 @@ export function getSupportedTokens() {
   return getCurrentConfig().supportedTokens;
 }
 
-export function getTokenById(id: number | string) {
-  const res = getSupportedTokens()
-    .find((t) => t.id === Number(id));
-  if (res === undefined) throw new Error("Token not found");
-  return res;
+// Resolver that accepts only coinType string (no backward compatibility)
+export function getTokenByType(coinType: string): TokenConfig {
+  const tokens = getSupportedTokens();
+  const key = coinType.trim();
+  const byType = tokens.find(t => t.coinType === key);
+  if (!byType) throw new Error('Token not found');
+  return byType;
 }
 
-export function getTokenName(id: number) {
-  return getTokenById(id).name;
+export function getTokenName(coinType: string) {
+  return getTokenByType(coinType).name;
 }
 
-export function priceFromBaseUnits(tokenId: number, price: number | bigint): number {
-  const token = getTokenById(tokenId);
+export function priceFromBaseUnits(tokenType: string, price: number | bigint): number {
+  const token = getTokenByType(tokenType);
   const priceNum = typeof price === 'bigint' ? Number(price) : price;
   return priceNum / (10 ** token.decimals);
 }
 
-export function priceToBaseUnits(token: number | TokenConfig, price: string | number): bigint {
-  const tokenConfig = typeof token === "number" ? getTokenById(token) : token;
+export function priceToBaseUnits(token: string | TokenConfig, price: string | number): bigint {
+  const tokenConfig = (typeof token === 'string') ? getTokenByType(token) : token;
   const priceNum = typeof price === 'string' ? parseFloat(price) : price;
   return BigInt(Math.round(priceNum * (10 ** tokenConfig.decimals)));
 }
 
-export function priceToDisplayString(tokenId: number, price: number | bigint, displayName: boolean = true): string {
-  const token = getTokenById(tokenId);
+export function priceToDisplayString(tokenType: string, price: number | bigint, displayName: boolean = true): string {
+  const token = getTokenByType(tokenType);
   const priceNum = typeof price === 'bigint' ? Number(price) : price;
   const value = priceNum / 10 ** token.decimals;
   const formatted = value.toLocaleString(undefined, {

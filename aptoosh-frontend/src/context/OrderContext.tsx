@@ -6,7 +6,7 @@ import {type DeliveryInfo} from '@/components/DeliveryInfoForm'
 export interface OrderState {
   cartItems: CartItem[]
   deliveryInfo: DeliveryInfo
-  tokenTotals: Record<number, bigint>
+  tokenTotals: Record<string, bigint>
 }
 
 interface OrderContextValue {
@@ -49,9 +49,9 @@ function loadOrderFromStorage(): OrderState | null {
       }
       // Convert tokenTotals values back to bigint
       if (key === 'tokenTotals' && typeof value === 'object' && value !== null) {
-        const converted: Record<number, bigint> = {}
+        const converted: Record<string, bigint> = {}
         for (const [tokenId, amount] of Object.entries(value)) {
-          converted[Number(tokenId)] = BigInt(amount as string)
+          converted[tokenId] = BigInt(amount as string)
         }
         return converted
       }

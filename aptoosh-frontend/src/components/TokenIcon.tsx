@@ -1,5 +1,5 @@
 import React from "react";
-import {getTokenById} from "@/lib/tokenUtils.ts";
+import {getTokenByType} from "@/lib/tokenUtils.ts";
 
 interface TokenIconProps {
   assetId: number | string;
@@ -9,8 +9,9 @@ interface TokenIconProps {
 }
 
 const TokenIcon: React.FC<TokenIconProps> = ({assetId, size = 20, alt = '', className = ''}) => {
-  const token = getTokenById(assetId);
-  const [imgSrc] = React.useState(token.img ?? `/tokens/${assetId}-icon.png`);
+  const token = getTokenByType(String(assetId));
+  // Use token.id for fallback icon filename to support coinType-based lookups
+  const [imgSrc] = React.useState(token.img ?? `/tokens/${token.id}-icon.png`);
   const [showFallback, setShowFallback] = React.useState(false);
 
   const handleError = () => {

@@ -2,7 +2,7 @@ import {z} from 'zod'
 
 export const ProductSchema = z.object({
   ProductId: z.string(),
-  PriceToken: z.number().int().nonnegative(),
+  PriceToken: z.string(),
   Price: z.bigint().positive(), // Changed to bigint for base units
   Name: z.string().min(1),
   Description: z.string(),

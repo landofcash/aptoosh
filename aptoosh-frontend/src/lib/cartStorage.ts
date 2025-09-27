@@ -3,13 +3,13 @@ import {z} from "zod"
 export const CartItemSchema = z.object({
   id: z.string(),
   name: z.string(),
-  price: z.bigint(), // Changed to bigint for base units
-  priceToken: z.number(), // Added token ID field
+  price: z.bigint(), // base units
+  priceToken: z.string(), // coinType string
   quantity: z.number().int().positive(),
   image: z.string().url(),
   shopWallet: z.string(),
-  sellerPubKey: z.string(), // Added seller public key
-  seed: z.string(), // Added seed from the product box
+  sellerPubKey: z.string(), // seller public key
+  seed: z.string(), // seed from the product box
 })
 
 export type CartItem = z.infer<typeof CartItemSchema>

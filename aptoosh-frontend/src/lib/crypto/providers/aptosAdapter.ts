@@ -6,7 +6,6 @@ import type {ProductData} from "@/lib/syncService.ts";
 import {getAptosClient} from "@/lib/aptos/aptosClient.ts";
 import type {GetStorageResult} from "@/lib/crypto/types/GetStorageResult.ts";
 import type {CartItem} from "@/lib/cartStorage.ts";
-import {getTokenById} from "@/lib/tokenUtils.ts";
 import {hexToBytes} from "@/utils/encoding.ts";
 
 type ProductOnChain = {
@@ -93,7 +92,7 @@ export const aptosAdapter: ChainAdapter = {
 
   async createOrderInitialOnBlockchain(
     walletAdapter: WalletAdapter,
-    tokenTotals: Record<number, bigint>,
+    tokenTotals: Record<string, bigint>,
     cartItems: CartItem[],
     orderSeed: string,
     buyerPubKey: string,
@@ -110,15 +109,13 @@ export const aptosAdapter: ChainAdapter = {
     if (!first.shopWallet) throw new Error("Missing seller address (shopWallet)");
     if (!first.sellerPubKey) throw new Error("Missing seller public key");
 
-    const tokenIds = Object.keys(tokenTotals || {});
-    if (tokenIds.length === 0) throw new Error("tokenTotals is empty");
-    if (tokenIds.length > 1) console.warn("Multiple token totals provided; using the first one only");
+    const coinTypes = Object.keys(tokenTotals || {});
+    if (coinTypes.length === 0) throw new Error("tokenTotals is empty");
+    if (coinTypes.length > 1) console.warn("Multiple token totals provided; using the first one only");
 
-    const tokenId = Number(tokenIds[0]);
-    const total = tokenTotals[tokenId] ?? 0n;
+    const coinType = coinTypes[0];
+    const total = tokenTotals[coinType] ?? 0n;
     const amountStr = total.toString();
-
-    const coinType = getTokenById(tokenId).coinType || '0x1::aptos_coin::AptosCoin';
 
     const payload: EntryFunctionPayload = {
       function: `${getCurrentConfig().account}::aptoosh::create_order_initial`,
@@ -144,7 +141,7 @@ export const aptosAdapter: ChainAdapter = {
 
   async createOrderPaidOnBlockchain(
     walletAdapter: WalletAdapter,
-    tokenTotals: Record<number, bigint>,
+    tokenTotals: Record<string, bigint>,
     cartItems: CartItem[],
     orderSeed: string,
     buyerPubKey: string,
@@ -161,15 +158,13 @@ export const aptosAdapter: ChainAdapter = {
     if (!first.shopWallet) throw new Error("Missing seller address (shopWallet)");
     if (!first.sellerPubKey) throw new Error("Missing seller public key");
 
-    const tokenIds = Object.keys(tokenTotals || {});
-    if (tokenIds.length === 0) throw new Error("tokenTotals is empty");
-    if (tokenIds.length > 1) console.warn("Multiple token totals provided; using the first one only");
+    const coinTypes = Object.keys(tokenTotals || {});
+    if (coinTypes.length === 0) throw new Error("tokenTotals is empty");
+    if (coinTypes.length > 1) console.warn("Multiple token totals provided; using the first one only");
 
-    const tokenId = Number(tokenIds[0]);
-    const total = tokenTotals[tokenId] ?? 0n;
+    const coinType = coinTypes[0];
+    const total = tokenTotals[coinType] ?? 0n;
     const amountStr = total.toString();
-
-    const coinType = getTokenById(tokenId).coinType || '0x1::aptos_coin::AptosCoin';
 
     const payload: EntryFunctionPayload = {
       function: `${getCurrentConfig().account}::aptoosh::create_order_paid`,

@@ -243,7 +243,7 @@ const OrderItemDisplay: React.FC<OrderItemDisplayProps> = ({order}) => {
   }
 
   const price = BigInt(order.price)
-  const priceToken = Number(order.priceToken)
+  const priceToken = order.priceToken
   const canDecrypt = order.status !== '1' // Not initial status
 
   return (

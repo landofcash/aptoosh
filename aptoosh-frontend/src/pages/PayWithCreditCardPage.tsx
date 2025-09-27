@@ -227,14 +227,13 @@ function PayWithCreditCardPage() {
   // Calculate total in USD (simplified conversion)
   const totalUSD = Object.entries(tokenTotals).reduce((sum, [tokenId, total]) => {
     // TODO: Implement real-time crypto to USD conversion
-    // For now, using simplified conversion rates
-    const conversionRates: Record<number, number> = {
-      0: 0.20, //  to USD
-      31566704: 1.0, // USDC to USD
-      10458941: 1.0, // Testnet USDC to USD
+    // For now, using simplified conversion rates by coinType
+    const conversionRates: Record<string, number> = {
+      '0x1::aptos_coin::AptosCoin': 0.20, // APT to USD (placeholder)
+      '0x69091fbab5f7d635ee7ac5098cf0c1efbe31d68fec0f2cd565e8d168daf52832::asset::USDC': 1.0, // Devnet USDC
     }
 
-    const rate = conversionRates[Number(tokenId)] || 1.0
+    const rate = conversionRates[tokenId] || 1.0
     const amount = Number(total) / 1000000 // Convert from base units
     return sum + (amount * rate)
   }, 0)
@@ -367,8 +366,8 @@ function PayWithCreditCardPage() {
                 {Object.entries(tokenTotals).map(([tokenId, total]) => (
                   <div key={tokenId} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
-                      <TokenIcon assetId={Number(tokenId)} size={16}/>
-                      <span>{priceToDisplayString(Number(tokenId), total)}</span>
+                      <TokenIcon assetId={tokenId} size={16}/>
+                      <span>{priceToDisplayString(tokenId, total)}</span>
                     </div>
                   </div>
                 ))}

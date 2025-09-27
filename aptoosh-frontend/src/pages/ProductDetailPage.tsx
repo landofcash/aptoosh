@@ -14,7 +14,7 @@ import {getCurrentConfig} from "@/config.ts";
 
 interface ProductRaw {
   ProductId: string
-  PriceToken: number
+  PriceToken: string
   Price: number // from JSON
   Name: string
   Description: string
@@ -50,7 +50,7 @@ function ProductDetailPage() {
           setError(errorText)
           return;
         }
-        // Read the product box content
+        // Read the product storage content
         const chainAdapter = getChainAdapter();
         const productData = await chainAdapter.viewProductOnBlockchain(state.productSeed)
         setProductData(productData)

@@ -45,7 +45,7 @@ export interface ChainAdapter {
 
   createOrderInitialOnBlockchain(
     walletAdapter: WalletAdapter,
-    tokenTotals: Record<number, bigint>,
+    tokenTotals: Record<string, bigint>,
     cartItems: CartItem[],
     orderSeed: string,
     buyerPubKey: string,
@@ -58,7 +58,7 @@ export interface ChainAdapter {
 
   createOrderPaidOnBlockchain(
     walletAdapter: WalletAdapter,
-    tokenTotals: Record<number, bigint>,
+    tokenTotals: Record<string, bigint>,
     cartItems: CartItem[],
     orderSeed: string,
     buyerPubKey: string,

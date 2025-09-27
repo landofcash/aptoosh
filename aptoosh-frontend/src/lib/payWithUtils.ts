@@ -7,7 +7,7 @@ export type OrderData = {
     id: string;
     name: string;
     price: string;       // stringified bigint
-    priceToken: number;
+    priceToken: string;  // coinType
     quantity: number;
   }[];
 }
