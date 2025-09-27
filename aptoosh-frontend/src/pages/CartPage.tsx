@@ -2,38 +2,47 @@ import {ArrowLeft, Trash2, Store, QrCode, ShoppingCart} from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import {Card, CardContent, CardHeader, CardSlim, CardTitle} from '@/components/ui/card'
 import {Link, useLocation, useNavigate} from 'react-router-dom'
-import {useEffect, useState} from 'react'
+import {useEffect, useMemo, useState} from 'react'
 import {type CartItem, getCartItems, clearCart, saveCartItems} from '@/lib/cartStorage'
 import {priceToDisplayString} from '@/lib/tokenUtils'
 import TokenIcon from '@/components/TokenIcon'
 import AddressDisplay from '@/components/AddressDisplay'
 import ApprovedShopBadge from '@/components/ApprovedShopBadge'
 import {useOrder} from '@/context/OrderContext'
+import {useWallet} from '@/context/WalletContext'
 
 type LocationState = {
   highlightedItemId?: string
 } | null
 
+type CartItemWithNetwork = CartItem & {network?: string}
+
 type GroupedCartItems = {
-  [shopWallet: string]: CartItem[]
+  [shopWallet: string]: CartItemWithNetwork[]
 }
 
 function CartPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const {setOrder} = useOrder()
+  const {network} = useWallet()
   const state = location.state as LocationState
-  const [cartItems, setCartItems] = useState<CartItem[]>([])
+  const [cartItems, setCartItems] = useState<CartItemWithNetwork[]>([])
   const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null)
 
   useEffect(() => {
-    setCartItems(getCartItems())
+    setCartItems(getCartItems() as CartItemWithNetwork[])
 
     // Set the highlighted item if provided in the navigation state
     if (state?.highlightedItemId) {
       setHighlightedItemId(state.highlightedItemId)
     }
-  }, [state?.highlightedItemId])
+  }, [state?.highlightedItemId, network])
+
+  const visibleItems = useMemo(
+    () => cartItems.filter(item => (item.network ?? network) === network),
+    [cartItems, network]
+  )
 
   // Clear highlight after 3 seconds
   useEffect(() => {
@@ -51,21 +60,27 @@ function CartPage() {
     setCartItems([])
   }
 
-  const handleUpdateQuantity = (itemId: string, newQuantity: number) => {
+  const handleUpdateQuantity = (itemId: string, itemNetwork: string | undefined, newQuantity: number) => {
     if (newQuantity < 1) return
 
+    const targetNetwork = itemNetwork ?? network
     const updatedItems = cartItems.map(item =>
-      item.id === itemId ? {...item, quantity: newQuantity} : item
+      item.id === itemId && (item.network ?? network) === targetNetwork
+        ? {...item, quantity: newQuantity}
+        : item
     )
 
     setCartItems(updatedItems)
-    saveCartItems(updatedItems)
+    saveCartItems(updatedItems as CartItem[])
   }
 
-  const handleRemoveItem = (itemId: string) => {
-    const updatedItems = cartItems.filter(item => item.id !== itemId)
+  const handleRemoveItem = (itemId: string, itemNetwork: string | undefined) => {
+    const targetNetwork = itemNetwork ?? network
+    const updatedItems = cartItems.filter(
+      item => !(item.id === itemId && (item.network ?? network) === targetNetwork)
+    )
     setCartItems(updatedItems)
-    saveCartItems(updatedItems)
+    saveCartItems(updatedItems as CartItem[])
   }
 
   const handleOrderFromShop = (items: CartItem[]) => {
@@ -102,22 +117,26 @@ function CartPage() {
   }
 
   // Group cart items by shop wallet
-  const groupedItems: GroupedCartItems = cartItems.reduce((groups, item) => {
-    const shopWallet = item.shopWallet
-    if (!groups[shopWallet]) {
-      groups[shopWallet] = []
-    }
-    groups[shopWallet].push(item)
-    return groups
-  }, {} as GroupedCartItems)
+  const groupedItems: GroupedCartItems = useMemo(() => {
+    return visibleItems.reduce((groups, item) => {
+      const shopWallet = item.shopWallet
+      if (!groups[shopWallet]) {
+        groups[shopWallet] = []
+      }
+      groups[shopWallet].push(item)
+      return groups
+    }, {} as GroupedCartItems)
+  }, [visibleItems])
 
   // Calculate total by token type for all items (for display purposes)
-  const globalTokenTotals = cartItems.reduce((totals, item) => {
-    const tokenId = item.priceToken
-    const itemTotal = item.price * BigInt(item.quantity)
-    totals[tokenId] = (totals[tokenId] || 0n) + itemTotal
-    return totals
-  }, {} as Record<string, bigint>)
+  const globalTokenTotals = useMemo(() => {
+    return visibleItems.reduce((totals, item) => {
+      const tokenId = item.priceToken
+      const itemTotal = item.price * BigInt(item.quantity)
+      totals[tokenId] = (totals[tokenId] || 0n) + itemTotal
+      return totals
+    }, {} as Record<string, bigint>)
+  }, [visibleItems])
 
   return (
     <div className="min-h-screen bg-background flex items-start justify-center px-4 py-8 sm:py-16">
@@ -131,7 +150,7 @@ function CartPage() {
           <CardTitle className="text-2xl font-bold">Your Cart</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {cartItems.length === 0 ? (
+          {visibleItems.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               Your cart is empty </div>
           ) : (
@@ -158,49 +177,53 @@ function CartPage() {
                       <CardContent className="px-0 space-y-0">
                         {/* Items for this shop */}
                         <div className="space-y-3 mb-6">
-                          {items.map(item => (
-                            <div key={item.id} className={`flex items-start gap-4 transition-all duration-1000 ${
-                              highlightedItemId === item.id
-                                ? 'animate-pulse bg-primary/10 shadow-lg scale-105'
-                                : 'bg-muted/30'
-                            }`}>
-                              {/* Product Image - Now a clickable link */}
-                              <Link to="/product-details" state={{
-                                productSeed: item.seed,
-                                itemId: item.id
-                              }} className="flex-shrink-0">
-                                <img src={item.image} alt={item.name}
-                                     className="w-16 h-16 object-cover rounded-md hover:opacity-80 transition-opacity cursor-pointer"/>
-                              </Link>
+                          {items.map(item => {
+                            const itemNetwork = item.network ?? network
+                            return (
+                              <div key={item.id} className={`flex items-start gap-4 transition-all duration-1000 ${
+                                highlightedItemId === item.id
+                                  ? 'animate-pulse bg-primary/10 shadow-lg scale-105'
+                                  : 'bg-muted/30'
+                              }`}>
+                                {/* Product Image - Now a clickable link */}
+                                <Link to="/product-details" state={{
+                                  productSeed: item.seed,
+                                  itemId: item.id,
+                                  network: itemNetwork
+                                }} className="flex-shrink-0">
+                                  <img src={item.image} alt={item.name}
+                                       className="w-16 h-16 object-cover rounded-md hover:opacity-80 transition-opacity cursor-pointer"/>
+                                </Link>
 
-                              <div className="flex-1 flex flex-col">
-                                <h3 className="font-medium line-clamp-2">{item.name}</h3>
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <TokenIcon assetId={item.priceToken} size={16}/>
-                                    <span>
-                                      {priceToDisplayString(item.priceToken, item.price, false)}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Button variant="outline" size="icon"
-                                            onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}>
-                                      -
-                                    </Button>
-                                    <span className="w-8 text-center">{item.quantity}</span>
-                                    <Button variant="outline" size="icon"
-                                            onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}>
-                                      +
-                                    </Button>
-                                    <Button variant="ghost" size="icon" className="text-destructive"
-                                            onClick={() => handleRemoveItem(item.id)}>
-                                      <Trash2 className="h-4 w-4"/>
-                                    </Button>
+                                <div className="flex-1 flex flex-col">
+                                  <h3 className="font-medium line-clamp-2">{item.name}</h3>
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                      <TokenIcon assetId={item.priceToken} size={16}/>
+                                      <span>
+                                        {priceToDisplayString(item.priceToken, item.price, false)}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <Button variant="outline" size="icon"
+                                              onClick={() => handleUpdateQuantity(item.id, itemNetwork, item.quantity - 1)}>
+                                        -
+                                      </Button>
+                                      <span className="w-8 text-center">{item.quantity}</span>
+                                      <Button variant="outline" size="icon"
+                                              onClick={() => handleUpdateQuantity(item.id, itemNetwork, item.quantity + 1)}>
+                                        +
+                                      </Button>
+                                      <Button variant="ghost" size="icon" className="text-destructive"
+                                              onClick={() => handleRemoveItem(item.id, itemNetwork)}>
+                                        <Trash2 className="h-4 w-4"/>
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            )
+                          })}
                         </div>
 
                         {/* Shop Total and Order Button */}
