@@ -68,7 +68,7 @@ interface DecryptedOrderData {
     id: string
     name: string
     price: string
-    priceToken: number
+    priceToken: string
     quantity: number
   }>
 }
@@ -505,7 +505,7 @@ function OrderDetailsPage() {
                   <div className="flex items-center gap-2">
                     <TokenIcon assetId={parseInt(order.priceToken)} size={18}/>
                     <span className="font-semibold text-green-600">
-                      {priceToDisplayString(parseInt(order.priceToken), parseInt(order.amount))}
+                      {priceToDisplayString(order.priceToken, parseInt(order.amount))}
                     </span>
                   </div>
                 </div>

@@ -30,7 +30,7 @@ const ConfirmDelivery: React.FC<ConfirmDeliveryProps> = ({
                                                            onDeliveryConfirmed,
                                                            onCancel
                                                          }) => {
-  const {walletAddress, signMessage} = useWallet()
+  const {walletAdapter, walletAddress, signMessage} = useWallet()
   const [shipmentCode, setShipmentCode] = useState('')
   const [customInfo, setCustomInfo] = useState('')
 
@@ -54,7 +54,7 @@ const ConfirmDelivery: React.FC<ConfirmDeliveryProps> = ({
     )
   }
 
-  // Determine current step based on state
+  // Determine the current step based on state
   const currentStep = isPayloadSigned && !isFormDataChanged() ? 2 : 1
 
   // Reset signed state when form data changes
@@ -96,18 +96,18 @@ const ConfirmDelivery: React.FC<ConfirmDeliveryProps> = ({
     setTransactionError(null)
 
     try {
-      // Sign the product seed with wallet (chain adapter) to generate the seller's key pair
-      const dataToSign = signPrefix + atob(order.productSeed)
+      // Sign the product seed with the wallet (chain adapter) to generate the seller's key pair
+      const dataToSign = signPrefix + order.productSeed
       const signedBytes = await signMessage(
         dataToSign,
         "Sign seed for delivery payload encryption"
       )
 
-      // Generate seller's key pair from signed data
+      // Generate the seller's key pair from signed data
       const signedBase64 = btoa(String.fromCharCode(...new Uint8Array(signedBytes)))
       const keyPair = await generateKeyPairFromB64(signedBase64)
 
-      // Decrypt the symmetric AES key using seller's private key
+      // Decrypt the symmetric AES key using the seller's private key
       const decryptedSymKey = await decryptWithECIES(keyPair.privateKey, order.encryptedSymKeySeller)
 
       // Prepare the delivery payload (combine shipmentCode and customInfo into JSON)
@@ -146,10 +146,10 @@ const ConfirmDelivery: React.FC<ConfirmDeliveryProps> = ({
   }
 
   /**
-   * Step 2: Confirm delivery on blockchain
+   * Step 2: Confirm delivery on the blockchain
    */
   const handleConfirmDelivery = async () => {
-    if (!order || !walletAddress) {
+    if (!order || !walletAddress || !walletAdapter) {
       setTransactionError('Order data or wallet not available')
       return
     }
@@ -170,10 +170,10 @@ const ConfirmDelivery: React.FC<ConfirmDeliveryProps> = ({
     try {
       // Call the blockchain method to start delivering the order
       const txId = await getChainAdapter().startDeliveringOrderOnBlockchain(
+        walletAdapter,
         order.seed,
         signedPayloadData.payloadHashSeller,
-        signedPayloadData.encryptedDeliveryCommentData,
-        walletAddress
+        signedPayloadData.encryptedDeliveryCommentData
       )
 
       console.log('Delivery confirmed! Transaction ID:', txId)

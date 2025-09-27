@@ -3,10 +3,15 @@ import {getCurrentConfig, type TokenConfig} from "@/config.ts";
 export function getSupportedTokens() {
     return getCurrentConfig().supportedTokens;
 }
-
 export function getTokenById(id:number|string) {
+  const res = getSupportedTokens()
+    .find((t) => t.id === Number(id));
+  if(res===undefined) throw new Error("Token not found");
+  return res;
+}
+export function getTokenByType(coinType:string) {
     const res = getSupportedTokens()
-        .find((t) => t.id === Number(id));
+        .find((t) => t.coinType === coinType);
     if(res===undefined) throw new Error("Token not found");
     return res;
 }
@@ -25,8 +30,8 @@ export function priceToBaseUnits(token: number | TokenConfig,price: string | num
     return Math.round(Number(price) * (10 ** tokenConfig.decimals));
 }
 
-export function priceToDisplayString(tokenId: number, price: number, displayName:boolean = true): string {
-    const token = getTokenById(tokenId);
+export function priceToDisplayString(coinType: string, price: number, displayName:boolean = true): string {
+    const token = getTokenById(coinType);
     const value = price / 10 ** token.decimals;
     const formatted = value.toLocaleString(undefined, {
         minimumFractionDigits: 0,

@@ -6,6 +6,7 @@ import type {ProductData} from "@/lib/syncService.ts";
 import {getAptosClient} from "@/lib/aptos/aptosClient.ts";
 import type {GetStorageResult} from "@/lib/crypto/types/GetStorageResult.ts";
 import {hexToBytes} from "@/utils/encoding.ts";
+import {getTokenById} from "@/lib/tokenUtils.ts";
 
 type ProductOnChain = {
   version: string | number;     // often comes back as a string (u64)
@@ -89,32 +90,48 @@ export const aptosAdapter: ChainAdapter = {
   },
 
   async refuseOrderOnBlockchain(
+    walletAdapter: WalletAdapter,
     seed: string,
     payloadHashSeller: string,
-    encryptedDeliveryCommentData: string,
-    senderAddress: string,
-    tokenIds: number[],
-    payerAddress: string
+    payloadEncrypted: string,
+    tokenIds: number[]|string[],
   ): Promise<string> {
-    console.log('Refuse order:', {
-      seed,
-      payloadHashSeller,
-      encryptedDeliveryCommentData,
-      senderAddress,
-      tokenIds,
-      payerAddress
-    });
-    return "TEST_TX_ID_REFUSE_ORDER";
+    console.log('Refuse order:', walletAdapter.name, seed, payloadHashSeller);
+    if (!seed || seed.length !== 22) {
+      throw new Error("Seed must be a 22-character string");
+    }
+    // Replace the single coinType line with:
+    const type_arguments = tokenIds.map(tokenId =>
+      getTokenById(tokenId).coinType || '0x1::aptos_coin::AptosCoin'
+    );
+
+    const payload: EntryFunctionPayload = {
+      function: `${getCurrentConfig().account}::aptoosh::refuse_order`,
+      type_arguments,
+      arguments: [seed, payloadHashSeller, payloadEncrypted]
+    };
+
+    const result = await walletAdapter.signAndSubmit(payload);
+    return result.hash;
   },
 
   async startDeliveringOrderOnBlockchain(
+    walletAdapter: WalletAdapter,
     seed: string,
     payloadHashSeller: string,
-    encryptedDeliveryCommentData: string,
-    senderAddress: string
+    payloadEncrypted: string
   ): Promise<string> {
-    console.log('Start delivering:', {seed, payloadHashSeller, encryptedDeliveryCommentData, senderAddress});
-    return "TEST_TX_ID_START_DELIVERING";
+    console.log('Start delivering:', walletAdapter.name, seed, payloadHashSeller);
+    if (!seed || seed.length !== 22) {
+      throw new Error("Seed must be a 22-character string");
+    }
+    const payload: EntryFunctionPayload = {
+      function: `${getCurrentConfig().account}::aptoosh::start_delivering`,
+      type_arguments: [],
+      arguments: [seed, payloadHashSeller, payloadEncrypted]
+    };
+    const result = await walletAdapter.signAndSubmit(payload);
+    return result.hash;
   },
 
   async viewProductOnBlockchain(seed: string): Promise<ProductData> {

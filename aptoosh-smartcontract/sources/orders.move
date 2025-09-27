@@ -22,6 +22,7 @@ module aptoosh::orders {
     const S_REFUND_REQ: u8 = 5;
     const S_REFUNDED_TO_BUYER: u8 = 6;
     const S_REFUNDED_TO_SELLER: u8 = 7;
+    const S_CANCELED: u8 = 8;
 
     const E_NOT_OWNER: u64 = 1;
     const E_ALREADY_INITIALIZED: u64 = 2;
@@ -308,6 +309,44 @@ module aptoosh::orders {
         meta.status = S_COMPLETED;
         meta.updated_ts = timestamp::now_seconds();
 
+        let events = borrow_global_mut<OrderEvents>(@aptoosh);
+        event::emit_event(
+            &mut events.event, OrderEvent { seed, action: EVENT_UPDATE }
+        );
+    }
+/*----------------------Seller refuses order*/
+    public(friend) fun refuse_order<CoinType>(
+        seller_signer: &signer,
+        seed: vector<u8>,
+        payload_hash_seller: vector<u8>,
+        seller_encrypted: vector<u8>
+    ) acquires Orders, OrderEvents {
+        let seller_addr = signer::address_of(seller_signer);
+        let store = borrow_global_mut<Orders>(@aptoosh);
+        assert!(store.by_id.contains(copy seed), E_NOT_FOUND);
+        let meta = store.by_id.borrow_mut(copy seed);
+        assert!(meta.seller == seller_addr, E_NOT_OWNER);
+        assert!(meta.status == S_PAID || meta.status == S_INITIAL, E_BAD_STATE);
+
+        meta.payload_hash_seller = payload_hash_seller;
+        if(meta.status == S_PAID) {
+            assert_order_coin<CoinType>(meta);
+            let to_addr =
+                if (meta.payer.is_some()) {
+                    *meta.payer.borrow()
+                } else {
+                    meta.buyer
+                };
+            escrow::payout<CoinType>(to_addr, meta.price_amount);
+            meta.status = S_REFUNDED_TO_BUYER;
+        };
+        if(meta.status == S_INITIAL) {
+            meta.status = S_CANCELED;
+            //refund not need as order was not paid
+        };
+        meta.updated_ts = timestamp::now_seconds();
+
+        table_put_vec<vector<u8>>(&mut store.seller_blob, copy seed, seller_encrypted);
         let events = borrow_global_mut<OrderEvents>(@aptoosh);
         event::emit_event(
             &mut events.event, OrderEvent { seed, action: EVENT_UPDATE }

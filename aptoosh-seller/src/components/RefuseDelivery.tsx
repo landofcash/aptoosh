@@ -1,14 +1,14 @@
-import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { XCircle, MessageSquare, AlertCircle, Key, Check, Loader2, X } from 'lucide-react'
-import { type Order } from '@/lib/syncService'
-import { useWallet } from '@/context/WalletContext'
-import { sha256, b64FromBytes } from '@/utils/encoding'
-import { decryptWithECIES, encryptAES } from '@/utils/encryption'
-import { generateKeyPairFromB64 } from '@/utils/keygen'
-import { signPrefix, getCurrentConfig } from '@/config'
-import { formatCryptoError } from '@/lib/cryptoFormat'
+import React, {useState} from 'react'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
+import {Button} from '@/components/ui/button'
+import {XCircle, MessageSquare, AlertCircle, Key, Check, Loader2, X} from 'lucide-react'
+import {type Order} from '@/lib/syncService'
+import {useWallet} from '@/context/WalletContext'
+import {sha256, b64FromBytes} from '@/utils/encoding'
+import {decryptWithECIES, encryptAES} from '@/utils/encryption'
+import {generateKeyPairFromB64} from '@/utils/keygen'
+import {signPrefix} from '@/config'
+import {formatCryptoError} from '@/lib/cryptoFormat'
 import {getChainAdapter} from "@/lib/crypto/cryptoUtils.ts";
 
 interface RefuseDeliveryProps {
@@ -24,11 +24,11 @@ interface SignedPayloadData {
 }
 
 const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
-  order,
-  onDeliveryRefused,
-  onCancel
-}) => {
-  const { walletAddress, signMessage } = useWallet()
+                                                         order,
+                                                         onDeliveryRefused,
+                                                         onCancel
+                                                       }) => {
+  const {walletAdapter, walletAddress, signMessage} = useWallet()
   const [customInfo, setCustomInfo] = useState('')
 
   // Two-step process state
@@ -79,7 +79,7 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
 
     try {
       // Sign the product seed with the wallet (chain adapter) to generate the seller's key pair
-      const dataToSign = signPrefix + atob(order.productSeed)
+      const dataToSign = signPrefix + order.productSeed
       const signedBytes = await signMessage(
         dataToSign,
         "Sign seed for delivery refusal payload encryption"
@@ -130,7 +130,7 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
    * Step 2: Refuse delivery on the blockchain
    */
   const handleRefuseDelivery = async () => {
-    if (!order || !walletAddress) {
+    if (!order || !walletAddress || !walletAdapter) {
       setTransactionError('Order data or wallet not available')
       return
     }
@@ -149,16 +149,13 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
     setTransactionError(null)
 
     try {
-      const config = getCurrentConfig()
-      const allTokens = config.supportedTokens.filter(x=>x.id!==0).map(token => token.id);
       // Call the blockchain method to refuse the order
       const txId = await getChainAdapter().refuseOrderOnBlockchain(
+        walletAdapter,
         order.seed,
         signedPayloadData.payloadHashSeller,
         signedPayloadData.encryptedDeliveryCommentData,
-        walletAddress,
-        allTokens,
-        order.payer,
+        [order.priceToken]
       )
 
       console.log('Order refused! Transaction ID:', txId)
@@ -203,12 +200,12 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <XCircle className="h-5 w-5 text-red-600" />
+            <XCircle className="h-5 w-5 text-red-600"/>
             Refuse Delivery
           </CardTitle>
           {onCancel && (
             <Button variant="outline" size="sm" onClick={onCancel}>
-              <X className="h-4 w-4 mr-2" />
+              <X className="h-4 w-4 mr-2"/>
               Cancel
             </Button>
           )}
@@ -221,15 +218,10 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
             <label htmlFor="customInfo" className="text-sm font-medium">
               Reason for Refusal
             </label>
-            <textarea
-              id="customInfo"
-              value={customInfo}
-              onChange={(e) => handleFormChange(e.target.value)}
-              placeholder="Please provide a reason for refusing this delivery (e.g., product defect, incorrect item, customer request, etc.)..."
-              rows={4}
-              disabled={isSigningPayload || isRefusingDelivery}
-              className="flex h-auto w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            />
+            <textarea id="customInfo" value={customInfo} onChange={(e) => handleFormChange(e.target.value)}
+                      placeholder="Please provide a reason for refusing this delivery (e.g., product defect, incorrect item, customer request, etc.)..."
+                      rows={4} disabled={isSigningPayload || isRefusingDelivery}
+                      className="flex h-auto w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"/>
           </div>
         </div>
 
@@ -240,7 +232,7 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
             <div className="flex-shrink-0">
               {currentStep > 1 ? (
                 <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                  <Check className="h-4 w-4 text-white" />
+                  <Check className="h-4 w-4 text-white"/>
                 </div>
               ) : (
                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center`}>
@@ -250,11 +242,9 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
             </div>
             <div className="flex-1">
               <p className={`font-medium ${currentStep > 1 ? 'text-green-600' : 'text-foreground'}`}>
-                Sign Refusal Payload
-              </p>
+                Sign Refusal Payload </p>
               <p className="text-sm text-muted-foreground">
-                Create secure refusal identifier and encrypt refusal info
-              </p>
+                Create secure refusal identifier and encrypt refusal info </p>
             </div>
           </div>
 
@@ -267,11 +257,9 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
             </div>
             <div className="flex-1">
               <p className={`font-medium text-foreground`}>
-                Send Blockchain Transaction
-              </p>
+                Send Blockchain Transaction </p>
               <p className="text-sm text-muted-foreground">
-                Refuse delivery on the blockchain
-              </p>
+                Refuse delivery on the blockchain </p>
             </div>
           </div>
 
@@ -285,12 +273,8 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
 
             {walletAddress && currentStep === 1 && !isSigningPayload && (
               <div className="text-center space-y-2">
-                <Button
-                  onClick={handleSignAndEncrypt}
-                  disabled={isSigningPayload}
-                  className="mt-2"
-                >
-                  <Key className="mr-2 h-4 w-4" />
+                <Button onClick={handleSignAndEncrypt} disabled={isSigningPayload} className="mt-2">
+                  <Key className="mr-2 h-4 w-4"/>
                   Sign Refusal Payload
                 </Button>
               </div>
@@ -298,16 +282,11 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
 
             {isSigningPayload && (
               <div className="text-center space-y-3">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+                <Loader2 className="h-8 w-8 animate-spin mx-auto"/>
                 <p className="text-muted-foreground">Please sign the refusal payload in your wallet</p>
                 <p className="text-xs text-muted-foreground">This creates a secure refusal identifier</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRetry}
-                  className="mt-2"
-                >
-                  <X className="mr-2 h-4 w-4" />
+                <Button variant="outline" size="sm" onClick={handleRetry} className="mt-2">
+                  <X className="mr-2 h-4 w-4"/>
                   Cancel Signing
                 </Button>
               </div>
@@ -316,13 +295,9 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
             {currentStep === 2 && !isRefusingDelivery && (
               <div className="text-center space-y-2">
                 <p className="text-muted-foreground">Ready to refuse delivery on blockchain</p>
-                <Button
-                  onClick={handleRefuseDelivery}
-                  variant="destructive"
-                  disabled={isRefusingDelivery}
-                  className="mt-4"
-                >
-                  <XCircle className="mr-2 h-4 w-4" />
+                <Button onClick={handleRefuseDelivery} variant="destructive" disabled={isRefusingDelivery}
+                        className="mt-4">
+                  <XCircle className="mr-2 h-4 w-4"/>
                   Refuse Delivery
                 </Button>
               </div>
@@ -330,17 +305,16 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
 
             {isRefusingDelivery && (
               <div className="text-center space-y-2">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+                <Loader2 className="h-8 w-8 animate-spin mx-auto"/>
                 <p className="text-muted-foreground">
-                  Please confirm the refusal transaction in your wallet
-                </p>
+                  Please confirm the refusal transaction in your wallet </p>
                 <p className="text-xs text-muted-foreground">This may take a few seconds</p>
               </div>
             )}
 
             {(signingError || transactionError) && (
               <div className="text-center space-y-2">
-                <AlertCircle className="h-8 w-8 text-destructive mx-auto" />
+                <AlertCircle className="h-8 w-8 text-destructive mx-auto"/>
                 <p className="text-destructive font-medium">
                   {signingError ? 'Signing failed' : 'Transaction failed'}
                 </p>
@@ -349,12 +323,7 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
                     {signingError || transactionError}
                   </div>
                 )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRetry}
-                  className="mt-2"
-                >
+                <Button variant="outline" size="sm" onClick={handleRetry} className="mt-2">
                   Try Again
                 </Button>
               </div>
@@ -364,12 +333,8 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
           {/* Reset Process Button */}
           {isPayloadSigned && (
             <div className="pt-4 border-t">
-              <Button
-                variant="outline"
-                onClick={handleResetSigning}
-                className="w-full"
-                disabled={isSigningPayload || isRefusingDelivery}
-              >
+              <Button variant="outline" onClick={handleResetSigning} className="w-full"
+                      disabled={isSigningPayload || isRefusingDelivery}>
                 Reset Process
               </Button>
             </div>
@@ -378,7 +343,7 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
 
         {/* Warning Message */}
         <div className="text-sm text-destructive bg-destructive/10 p-3 rounded flex items-start gap-2">
-          <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+          <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0"/>
           <div>
             <p className="font-medium">Warning: This action cannot be undone</p>
             <p>Refusing delivery will cancel the order and update the status to "Cancelled" on the blockchain.</p>
@@ -387,7 +352,7 @@ const RefuseDelivery: React.FC<RefuseDeliveryProps> = ({
 
         {/* Info Message */}
         <div className="text-sm text-muted-foreground flex items-center gap-2">
-          <MessageSquare className="h-4 w-4" />
+          <MessageSquare className="h-4 w-4"/>
           This will update the order status to "Cancelled" on the blockchain
         </div>
       </CardContent>

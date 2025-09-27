@@ -4,7 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b31442be-9003-4fae-9eb3-d6315332c15b" name="Changes" comment="" />
+    <list default="true" id="b31442be-9003-4fae-9eb3-d6315332c15b" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/components/ConfirmDelivery.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/components/ConfirmDelivery.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/components/RefuseDelivery.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/components/RefuseDelivery.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/providers/aptosAdapter.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/providers/aptosAdapter.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/types/ChainAdapter.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/lib/crypto/types/ChainAdapter.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/lib/tokenUtils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/lib/tokenUtils.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../aptoosh-seller/src/pages/OrderDetailsPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../aptoosh-seller/src/pages/OrderDetailsPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sources/aptoosh.move" beforeDir="false" afterPath="$PROJECT_DIR$/sources/aptoosh.move" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sources/orders.move" beforeDir="false" afterPath="$PROJECT_DIR$/sources/orders.move" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -51,7 +61,7 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager" selected="Aptos.Test aptoosh_test::create_product_ok">
+  <component name="RunManager" selected="Aptos.compile">
     <configuration name="Test aptoosh_test" type="AptosCommandConfiguration" factoryName="AnyCommand" temporary="true">
       <option name="command" value="move test --dev --skip-fetch-latest-git-deps --filter aptoosh_test" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -111,6 +121,7 @@
       <workItem from="1758468774497" duration="7076000" />
       <workItem from="1758584638525" duration="1153000" />
       <workItem from="1758652721251" duration="5434000" />
+      <workItem from="1758905451003" duration="11514000" />
     </task>
     <servers />
   </component>
