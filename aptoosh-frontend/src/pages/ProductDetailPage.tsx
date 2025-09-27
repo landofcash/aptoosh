@@ -108,7 +108,8 @@ function ProductDetailPage() {
 
         shopWallet: productData.shopWallet,
         sellerPubKey: productData.sellerPubKey,
-        seed: productData.seed
+        seed: productData.seed,
+        network: state.network,
       })
 
       // Navigate to the cart page with the highlighted item ID
@@ -124,7 +125,7 @@ function ProductDetailPage() {
   }
 
   if (!state) {
-    return <Navigate to="/scan\" replace/>
+    return <Navigate to="/scan" replace/>
   }
 
   return (

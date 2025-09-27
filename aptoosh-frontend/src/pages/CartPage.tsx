@@ -15,7 +15,7 @@ type LocationState = {
   highlightedItemId?: string
 } | null
 
-type CartItemWithNetwork = CartItem & {network?: string}
+type CartItemWithNetwork = CartItem
 
 type GroupedCartItems = {
   [shopWallet: string]: CartItemWithNetwork[]
@@ -40,7 +40,7 @@ function CartPage() {
   }, [state?.highlightedItemId, network])
 
   const visibleItems = useMemo(
-    () => cartItems.filter(item => (item.network ?? network) === network),
+    () => cartItems.filter(item => item.network === network),
     [cartItems, network]
   )
 
@@ -65,7 +65,7 @@ function CartPage() {
 
     const targetNetwork = itemNetwork ?? network
     const updatedItems = cartItems.map(item =>
-      item.id === itemId && (item.network ?? network) === targetNetwork
+      item.id === itemId && item.network === targetNetwork
         ? {...item, quantity: newQuantity}
         : item
     )
@@ -77,7 +77,7 @@ function CartPage() {
   const handleRemoveItem = (itemId: string, itemNetwork: string | undefined) => {
     const targetNetwork = itemNetwork ?? network
     const updatedItems = cartItems.filter(
-      item => !(item.id === itemId && (item.network ?? network) === targetNetwork)
+      item => !(item.id === itemId && item.network === targetNetwork)
     )
     setCartItems(updatedItems)
     saveCartItems(updatedItems as CartItem[])
@@ -178,7 +178,7 @@ function CartPage() {
                         {/* Items for this shop */}
                         <div className="space-y-3 mb-6">
                           {items.map(item => {
-                            const itemNetwork = item.network ?? network
+                            const itemNetwork = item.network
                             return (
                               <div key={item.id} className={`flex items-start gap-4 transition-all duration-1000 ${
                                 highlightedItemId === item.id

@@ -10,6 +10,7 @@ export const CartItemSchema = z.object({
   shopWallet: z.string(),
   sellerPubKey: z.string(), // seller public key
   seed: z.string(), // seed from the product box
+  network: z.string(), // required: the network this item belongs to
 })
 
 export type CartItem = z.infer<typeof CartItemSchema>
@@ -61,10 +62,10 @@ export function clearCart(): void {
 export function addItemToCart(item: CartItem): void {
   try {
     const currentItems = getCartItems()
-    const existingItemIndex = currentItems.findIndex(i => i.id === item.id)
+    const existingItemIndex = currentItems.findIndex(i => i.id === item.id && i.network === item.network)
 
     if (existingItemIndex !== -1) {
-      // Item exists, update quantity
+      // Item exists on same network, update quantity
       currentItems[existingItemIndex].quantity += item.quantity
     } else {
       // New item, add to cart
