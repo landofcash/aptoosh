@@ -248,13 +248,13 @@ const WalletAuth: React.FC = () => {
             Disconnect
           </Button>
           {network !== "devnet" && (
-            <Button onClick={() => switchNetwork("mainnet")}
+            <Button onClick={() => switchNetwork("devnet")}
                     className="hidden w-full justify-start text-sm bg-gray-500 hover:bg-gray-600 text-white cursor-pointer">
               <RefreshCcw className="w-4 h-4 mr-2"/>
               Switch to DEVNET
             </Button>)}
           {network !== "testnet" && (
-            <Button onClick={() => switchNetwork("mainnet")}
+            <Button onClick={() => switchNetwork("testnet")}
                     className="hidden w-full justify-start text-sm bg-gray-500 hover:bg-gray-600 text-white cursor-pointer">
               <RefreshCcw className="w-4 h-4 mr-2"/>
               Switch to TESTNET
