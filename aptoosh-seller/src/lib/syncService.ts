@@ -79,15 +79,14 @@ export interface SellerOrdersResponse {
   data: BuyerOrderGroup[]
 }
 
-const config = getCurrentConfig();
-
 
 /**
  * Fetches products for a specific wallet address
  */
 export async function fetchProductsForWallet(walletAddress: string): Promise<ProductData[]> {
   try {
-    const response = await fetch(`${config.apiUrl}/products/${walletAddress}`)
+    const {apiUrl} = getCurrentConfig()
+    const response = await fetch(`${apiUrl}/products/${walletAddress}`)
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -127,7 +126,8 @@ export async function fetchUserCatalogues(walletAddress: string): Promise<Produc
  */
 export async function fetchSellerOrders(sellerWallet: string): Promise<Order[]> {
   try {
-    const response = await fetch(`${config.apiUrl}/orders/seller/${sellerWallet}`)
+    const {apiUrl} = getCurrentConfig()
+    const response = await fetch(`${apiUrl}/orders/seller/${sellerWallet}`)
 
     if (!response.ok) {
       if (response.status === 404) {
