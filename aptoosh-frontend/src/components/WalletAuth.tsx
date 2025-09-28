@@ -171,9 +171,7 @@ const WalletAuth: React.FC = () => {
     }
   }), [setExternalProviderId, connect, withBusy]);
 
-  const supportedProviders = new Set(["pontem", "petra", "walletconnect"]);
   const providers = availableExternalProviders
-    .filter((p) => supportedProviders.has(p.id))
     .filter((p) => (p.id === "walletconnect" ? true : p.installed));
 
   if (!walletAddress) {

@@ -11,6 +11,11 @@ export const APP_KEY_PREFIX = 'Aptoosh';
 const APTOS_EXPLORER_BASE = 'https://explorer.aptoslabs.com';
 const WALLETCONNECT_PROJECT_ID = '9cec891357250a5edfd42c4723e635be';
 
+// Circle Web SDK configuration (frontend hardcoded)
+// Leave APP_ID and BASE_URL empty if not used. Set BASE_URL to your backend origin if you use server-issued user tokens.
+export const CIRCLE_APP_ID: string = 'a8986a00-6cbf-51f9-82ca-9945055526f6';
+export const CIRCLE_BASE_URL: string = '';
+
 // Maximum size for order payload in bytes (2KB)
 // while keeping transaction costs reasonable
 export const MAX_ORDER_PAYLOAD_BYTES = 2048;

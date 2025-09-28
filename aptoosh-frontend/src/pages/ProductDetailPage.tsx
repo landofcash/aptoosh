@@ -96,7 +96,7 @@ function ProductDetailPage() {
   }, [state?.productSeed, state?.itemId, state?.network])
 
   const handleAddToCart = () => {
-    if (!product || !productData) return
+    if (!product || !productData || !state) return
     try {
       addItemToCart({
         id: product.ProductId,

@@ -1,22 +1,19 @@
-import {getCurrentConfig} from '@/config';
+import {getCurrentConfig, CIRCLE_APP_ID, CIRCLE_BASE_URL} from '@/config';
 import type {EntryFunctionPayload, NetworkId, WalletAdapter} from '../types';
-import {createW3sClient} from '@circle-fin/w3s-pw-web-sdk';
-
-type CircleW3sClient = ReturnType<typeof createW3sClient>;
+import { W3SSdk } from '@circle-fin/w3s-pw-web-sdk';
 
 type CircleWallet = { walletId: string };
 type CircleWalletListResponse = { data: { wallets: CircleWallet[] } };
 type CircleAddress = { walletId: string; address: string; blockchain: string };
 type CircleAddressListResponse = { data: { addresses: CircleAddress[] } };
-type CircleSignatureResponse = { data: { signature: Uint8Array | number[] } };
+type CircleSignatureResponse = { data: { signature: string | Uint8Array | number[] } };
 type CircleTransactionResponse = { data: { transactionHash?: string; hash?: string; id?: string } };
 
 type AccountChangeCallback = (address: string | null) => void;
 
 const STORAGE_KEY = 'circle.wallet.id';
-const DEFAULT_ENVIRONMENT = 'sandbox';
 
-let clientPromise: Promise<CircleW3sClient> | null = null;
+let clientPromise: Promise<W3SSdk> | null = null;
 let activeWalletId: string | null = null;
 let activeAddress: string | null = null;
 const accountSubscribers = new Set<AccountChangeCallback>();
@@ -53,31 +50,30 @@ function notifyAccount(address: string | null) {
   }
 }
 
-async function getClient(): Promise<CircleW3sClient> {
+async function getClient(): Promise<W3SSdk> {
   if (!clientPromise) {
-    const environment = import.meta.env?.VITE_CIRCLE_ENVIRONMENT ?? DEFAULT_ENVIRONMENT;
-    const appId = import.meta.env?.VITE_CIRCLE_APP_ID;
-    const baseUrl = import.meta.env?.VITE_CIRCLE_BASE_URL;
-    const options: Record<string, unknown> = {environment};
-    if (appId) options.appId = appId;
-    if (baseUrl) options.baseUrl = baseUrl;
-    clientPromise = Promise.resolve(createW3sClient(options));
+    const appId = CIRCLE_APP_ID;
+    // Initialize Circle Web SDK. It expects configs with appSettings.appId. Environment/baseUrl are used by backend flows.
+    const configs: any = {};
+    if (appId) configs.appSettings = { appId };
+    const client = new W3SSdk(configs as any);
+    clientPromise = Promise.resolve(client as unknown as W3SSdk);
   }
   return clientPromise;
 }
 
-async function listWallets(client: CircleW3sClient): Promise<CircleWallet[]> {
-  const response = await client.wallets.listWallets() as CircleWalletListResponse;
+async function listWallets(client: W3SSdk): Promise<CircleWallet[]> {
+  const response = await (client as any)?.wallets?.listWallets?.() as CircleWalletListResponse;
   const wallets = response?.data?.wallets ?? [];
   if (!wallets.length) throw new Error('Circle account has no wallets');
   return wallets;
 }
 
-async function getWalletAddresses(client: CircleW3sClient, walletId: string): Promise<CircleAddressListResponse> {
-  return await client.addresses.listAddresses({walletId}) as CircleAddressListResponse;
+async function getWalletAddresses(client: W3SSdk, walletId: string): Promise<CircleAddressListResponse> {
+  return await (client as any)?.addresses?.listAddresses?.({ walletId }) as CircleAddressListResponse;
 }
 
-async function selectWallet(client: CircleW3sClient): Promise<CircleWallet> {
+async function selectWallet(client: W3SSdk): Promise<CircleWallet> {
   const wallets = await listWallets(client);
   const persistedId = activeWalletId ?? loadPersistedWalletId();
   if (persistedId) {
@@ -87,7 +83,7 @@ async function selectWallet(client: CircleW3sClient): Promise<CircleWallet> {
   return wallets[0]!;
 }
 
-async function resolveAptosAddress(client: CircleW3sClient, walletId: string): Promise<string> {
+async function resolveAptosAddress(client: W3SSdk, walletId: string): Promise<string> {
   const addressResponse = await getWalletAddresses(client, walletId);
   const addresses = addressResponse?.data?.addresses ?? [];
   const aptosAddress = addresses.find(addr => addr.blockchain === 'APTOS');
@@ -106,17 +102,13 @@ async function ensureActiveWallet(): Promise<{ walletId: string; address: string
   return {walletId: persistedId, address};
 }
 
-function isConfigured(): boolean {
-  return Boolean(import.meta.env?.VITE_CIRCLE_APP_ID ?? import.meta.env?.VITE_CIRCLE_BASE_URL);
-}
-
 export const circleWalletAdapter: WalletAdapter = {
   chain: 'aptos',
-  name: 'Circle Programmable Wallet',
+  name: 'Circle Wallet',
   id: 'circle',
 
   isInstalled() {
-    return isConfigured();
+    return Boolean(CIRCLE_APP_ID || CIRCLE_BASE_URL);
   },
 
   async getAddress(): Promise<string | null> {
@@ -136,9 +128,7 @@ export const circleWalletAdapter: WalletAdapter = {
 
   async connect(): Promise<string | null> {
     const client = await getClient();
-    if (typeof client.auth.getUserToken === 'function') {
-      await client.auth.getUserToken();
-    }
+    await client.auth.getUserToken();
 
     const wallet = await selectWallet(client);
     const address = await resolveAptosAddress(client, wallet.walletId);
@@ -153,8 +143,9 @@ export const circleWalletAdapter: WalletAdapter = {
   async disconnect(): Promise<void> {
     if (clientPromise) {
       const client = await getClient();
-      if (typeof client.auth.logout === 'function') {
-        await client.auth.logout();
+      const anyClient = client as any;
+      if (typeof anyClient?.auth?.logout === 'function') {
+        await anyClient.auth.logout();
       }
     }
 
@@ -173,38 +164,45 @@ export const circleWalletAdapter: WalletAdapter = {
 
   async signMessage(dataToSign: string): Promise<Uint8Array> {
     const client = await getClient();
-    const {walletId} = await ensureActiveWallet();
-    const response = await client.signatures.createSignature({
+    const { walletId } = await ensureActiveWallet();
+    const anyClient = client as any;
+    const response = await anyClient?.signatures?.createSignature?.({
       walletId,
       unsignedMessage: dataToSign,
     }) as CircleSignatureResponse;
     const signature = response?.data?.signature;
     if (signature instanceof Uint8Array) return signature;
     if (Array.isArray(signature)) return Uint8Array.from(signature);
+    if (typeof signature === 'string') return stringToBytes(signature);
     throw new Error('Circle signature response missing byte payload');
   },
 
   async signAndSubmit(payload: EntryFunctionPayload): Promise<{ hash: string }> {
     const client = await getClient();
-    const {walletId} = await ensureActiveWallet();
+    const { walletId } = await ensureActiveWallet();
     const network = getCurrentConfig().name;
-    const response = await client.transactions.createTransaction({
+    const anyClient = client as any;
+    const response = await anyClient?.transactions?.createTransaction?.({
       walletId,
       payload,
       network,
     }) as CircleTransactionResponse;
     const hash = response?.data?.transactionHash ?? response?.data?.hash ?? response?.data?.id;
     if (!hash) throw new Error('Circle transaction response missing hash');
-    return {hash};
+    return { hash };
   },
 };
 
-export const __TESTING__ = {
-  reset() {
-    clientPromise = null;
-    activeWalletId = null;
-    activeAddress = null;
-    accountSubscribers.clear();
-  },
-  storageKey: STORAGE_KEY,
-};
+function stringToBytes(input: string): Uint8Array {
+  // Try hex with optional 0x prefix
+  const hex = input.startsWith('0x') ? input.slice(2) : input;
+  if (/^[0-9a-fA-F]+$/.test(hex) && hex.length % 2 === 0) {
+    const out = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < hex.length; i += 2) {
+      out[i / 2] = parseInt(hex.slice(i, i + 2), 16);
+    }
+    return out;
+  }
+  // Fallback to UTF-8 bytes
+  return new TextEncoder().encode(input);
+}
