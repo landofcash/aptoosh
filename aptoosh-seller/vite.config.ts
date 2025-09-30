@@ -10,11 +10,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
-      __APP_VERSION__: JSON.stringify(pkg.version),
     },
   },
   define: {
     global: 'window',
+    __APP_VERSION__: JSON.stringify(pkg.version),
   },
   css: {
     postcss: {
