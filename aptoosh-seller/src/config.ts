@@ -1,6 +1,7 @@
 import type {NetworkId} from "@/context/wallet/types.ts";
 
-export const APP_VERSION = '0.2.3'
+declare const __APP_VERSION__: string;
+export const APP_VERSION = __APP_VERSION__
 export const APP_NAME='Aptoosh'
 export const BASE_URL='https://aptoosh.com'
 
