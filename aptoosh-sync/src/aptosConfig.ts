@@ -70,7 +70,7 @@ export class AptosConfigManager {
 
 
     //this.addConfig('mainnet', mainnetConfig);
-    //this.addConfig('testnet', testnetConfig);
+    this.addConfig('testnet', testnetConfig);
     this.addConfig('devnet', devnetConfig);
   }
 
