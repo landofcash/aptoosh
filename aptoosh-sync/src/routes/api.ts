@@ -1,12 +1,13 @@
 import express from 'express';
-import { networkParam } from '../middleware/network';
 import walletsRouter from './api/wallets.routes';
 import productsRouter from './api/products.routes';
 import ordersRouter from './api/orders.routes';
+import { requireNetwork } from '../middleware/requireNetwork';
 
 const router = express.Router({ mergeParams: true });
-router.param('network', networkParam);
 
+// Ensure network is present on all API routes
+router.use(requireNetwork);
 router.use('/wallets', walletsRouter);
 router.use('/products', productsRouter);
 router.use('/orders', ordersRouter);

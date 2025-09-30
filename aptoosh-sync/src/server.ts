@@ -7,6 +7,7 @@ import systemRouter from './routes/system';
 import apiRouter from './routes/api';
 import circleRouter from './routes/api/circle.routes';
 import { sendJson } from './utils/respond';
+import { networkParam } from './middleware/network';
 
 export function createApp() {
   const app = express();
@@ -33,6 +34,10 @@ export function createApp() {
   app.use('/', systemRouter);
   app.use('/api/cdn', uploadToBunnyRouter);
   app.use('/api/circle', circleRouter);
+
+  // Register the :network param handler at the app level
+  app.param('network', networkParam);
+
   app.use('/api/v1/:network', apiRouter);
   app.use('/api/:network', apiRouter);
   app.use((err: unknown, _req: Request, res: Response, _next: Function) => {
