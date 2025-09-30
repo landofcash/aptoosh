@@ -34,7 +34,7 @@ export interface OrderCacheEntry {
   status: bigint;
   productSeed: string;
   price: bigint;
-  priceToken: bigint;
+  priceToken: string;
   seller: string;
   buyer: string;
   payer: string;

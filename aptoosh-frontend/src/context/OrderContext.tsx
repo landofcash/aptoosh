@@ -2,6 +2,7 @@
 import {createContext, useContext, useState, useEffect, type ReactNode} from 'react'
 import {type CartItem} from '@/lib/cartStorage'
 import {type DeliveryInfo} from '@/components/DeliveryInfoForm'
+import {getCurrentConfig} from "@/config.ts";
 
 export interface OrderState {
   cartItems: CartItem[]
@@ -46,6 +47,9 @@ function loadOrderFromStorage(): OrderState | null {
       // Convert price back to bigint when loading from sessionStorage
       if (key === 'price' && typeof value === 'string') {
         return BigInt(value)
+      }
+      if (key === 'priceToken' && value === '0') {
+        return getCurrentConfig().supportedTokens[0].coinType
       }
       // Convert tokenTotals values back to bigint
       if (key === 'tokenTotals' && typeof value === 'object' && value !== null) {

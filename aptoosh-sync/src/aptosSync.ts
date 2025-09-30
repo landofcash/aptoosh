@@ -155,6 +155,48 @@ function mapOrderToCache(seed: string, m: any): OrderCacheEntry {
     // Fallback to string conversion
     return String(v);
   };
+
+  const extractTokenTag = (row: any): string => {
+    const normalizeAddr = (addr: string): string => addr.startsWith('0x') ? addr : `0x${addr}`;
+    const opt = row?.price_token_tag ?? row?.priceTokenTag ?? row?.token_tag ?? row?.tokenTag;
+
+    const unwrapOption = (v: any): any | null => {
+      if (v === null || v === undefined) return null;
+      if (typeof v === 'string') return v;
+      if (Array.isArray(v)) return v.length > 0 ? v[0] : null;
+      if (typeof v === 'object') {
+        if (Array.isArray((v as any).vec)) {
+          const vec = (v as any).vec;
+          return vec.length > 0 ? vec[0] : null;
+        }
+        if ('some' in v) return (v as any).some ?? null;
+        if ('none' in v) return null;
+      }
+      return v;
+    };
+
+    const ti = unwrapOption(opt);
+    if (!ti) return '';
+    if (typeof ti === 'string') return ti;
+    if (typeof ti === 'object') {
+      if (typeof (ti as any).type === 'string') return (ti as any).type;
+      const acc = (ti as any).account_address ?? (ti as any).accountAddress ?? (ti as any).addr ?? (ti as any).address;
+      const moduleRaw = (ti as any).module_name ?? (ti as any).moduleName ?? (ti as any).module;
+      const structRaw = (ti as any).struct_name ?? (ti as any).structName ?? (ti as any).struct;
+      const decodeMaybeHexName = (v: any): string => {
+        const s = String(v);
+        return /^0x[0-9a-fA-F]*$/.test(s) ? hexToString(s) : s;
+      };
+      const module = moduleRaw !== undefined && moduleRaw !== null ? decodeMaybeHexName(moduleRaw) : '';
+      const struct = structRaw !== undefined && structRaw !== null ? decodeMaybeHexName(structRaw) : '';
+      if (acc && module && struct) {
+        const addr = normalizeAddr(String(acc));
+        return `${addr}::${module}::${struct}`;
+      }
+    }
+    return '';
+  };
+
   const buyer = toStr(m.buyer);
   const seller = toStr(m.seller);
   return {
@@ -166,7 +208,7 @@ function mapOrderToCache(seed: string, m: any): OrderCacheEntry {
     status: BigInt(Number(m.status ?? 0)),
     productSeed: hexToString(toStr(m.product_seed)),
     price: toBig(m.price_amount),
-    priceToken: 0n, // derive from price_token_tag if needed
+    priceToken: extractTokenTag(m),
     seller: seller,
     buyer: buyer,
     payer: fromOptionAddress(m.payer),

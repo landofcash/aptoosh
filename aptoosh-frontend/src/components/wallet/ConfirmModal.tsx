@@ -1,5 +1,4 @@
 import React from 'react'
-import {createPortal} from 'react-dom'
 import {Button} from '@/components/ui/button'
 
 interface ConfirmModalProps {
@@ -36,7 +35,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
       </div>
     </div>
   )
-  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal
+  return modal
 }
 
 export default ConfirmModal

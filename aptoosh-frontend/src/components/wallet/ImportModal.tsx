@@ -1,5 +1,4 @@
 import React, {useMemo, useState} from 'react'
-import {createPortal} from 'react-dom'
 import {Button} from '@/components/ui/button'
 
 interface ImportModalProps {
@@ -68,7 +67,7 @@ const ImportModal: React.FC<ImportModalProps> = ({open, onClose, onImport}) => {
     </div>
   )
 
-  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal
+  return modal
 }
 
 export default ImportModal
