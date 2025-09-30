@@ -43,6 +43,7 @@ export interface NetworkConfig {
   account: string;
   apiUrl: string;
   fileApiUrl:string;
+  circleApiUrl?: string | null;
   aptos: AptosEndpoints;
   explorerBaseUrl: string; // https://explorer.aptoslabs.com
   walletConnectProjectId?: string | null;
@@ -58,6 +59,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
     account: '0x84171af48f266ba207890b75e78b503336c1cef911f693d65eb770da000f971f',
     apiUrl: 'https://sync.aptoosh.com/api/m',
     fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
+    circleApiUrl: 'https://sync.aptoosh.com/api/circle',
     cdnBasePath: 'https://aptoosh.b-cdn.net',
     aptos: {
       nodeUrl: 'https://fullnode.mainnet.aptoslabs.com/v1',
@@ -79,6 +81,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
     account: '0x84171af48f266ba207890b75e78b503336c1cef911f693d65eb770da000f971f',
     apiUrl: 'https://sync.aptoosh.com/api/t',
     fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
+    circleApiUrl: 'https://sync.aptoosh.com/api/circle',
     cdnBasePath: 'https://aptoosh.b-cdn.net',
     aptos: {
       nodeUrl: 'https://fullnode.testnet.aptoslabs.com/v1',
@@ -103,6 +106,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
     account: '0x84171af48f266ba207890b75e78b503336c1cef911f693d65eb770da000f971f',
     apiUrl: 'https://sync.aptoosh.com/api/d',
     fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
+    circleApiUrl: 'https://sync.aptoosh.com/api/circle',
     cdnBasePath: 'https://aptoosh.b-cdn.net',
     aptos: {
       nodeUrl: 'https://fullnode.devnet.aptoslabs.com/v1',
@@ -129,6 +133,15 @@ export const getCurrentConfig = (): NetworkConfig => {
   const raw = (localStorage.getItem('network') as NetworkId) || 'testnet';
   const network: NetworkId = ['mainnet', 'testnet', 'devnet'].includes(raw) ? raw : 'testnet';
   return getConfig(network);
+};
+
+export const getCircleApiBaseUrl = (): string | null => {
+  try {
+    const cfg = getCurrentConfig();
+    return cfg.circleApiUrl ?? null;
+  } catch {
+    return null;
+  }
 };
 
 export const getNetworkIdFromQRCode = (value:string):NetworkId => {
