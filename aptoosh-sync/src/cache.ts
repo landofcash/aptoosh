@@ -1,5 +1,5 @@
 import Loki from 'lokijs';
-import {ProductStore, ProductCacheEntry, OrderStore, OrderCacheEntry} from './types';
+import {ProductStore, ProductCacheEntry, OrderStore, OrderCacheEntry} from './types/types';
 
 interface AptosCursor {
   type: string;

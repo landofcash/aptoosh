@@ -1,9 +1,9 @@
 import {config} from './config';
 import {appDb} from './cache';
 import {fetchEventsByType, loadOrderMetaBySeed, loadProductBySeed} from './aptos';
-import {EventTypes} from './events';
+import {EventTypes} from './types/events';
 import type {AptosNetworkConfig} from './aptosConfig';
-import type {ProductCacheEntry, OrderCacheEntry} from './types';
+import type {ProductCacheEntry, OrderCacheEntry} from './types/types';
 
 let aptosSyncRunning = false;
 let lastRunTime: Date | null = null;
