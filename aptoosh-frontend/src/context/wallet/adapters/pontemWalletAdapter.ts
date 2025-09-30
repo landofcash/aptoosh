@@ -11,7 +11,7 @@ function provider(): PontemWalletProvider | null {
 
 export const pontemWalletAdapter: WalletAdapter = {
   chain: 'aptos',
-  name: 'Pontem (browser)',
+  name: 'Pontem',
   id: 'pontem',
 
   isInstalled() {

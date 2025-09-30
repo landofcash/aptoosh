@@ -68,7 +68,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
 
   testnet: {
     name: 'testnet',
-    account: '0x84171af48f266ba207890b75e78b503336c1cef911f693d65eb770da000f971f',
+    account: '0x56397d22cd1f3ee037d59677e61ea72c6a11d73777705df4cd489a4dea83244d',
     apiUrl: 'https://sync.aptoosh.com/api/t',
     fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
     cdnBasePath: 'https://aptoosh.b-cdn.net',

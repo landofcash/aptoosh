@@ -15,6 +15,10 @@ import {
   removeInternalWallet,
   importInternalWallet,
 } from "@/lib/crypto/internalWallet";
+import petraLogo from "@/assets/petra-logo.svg";
+import pontemLogo from "@/assets/pontem-logo.svg";
+import wcLogo from "@/assets/wc-logo.svg";
+import genericWalletLogo from "@/assets/wallet.svg";
 
 const WalletAuth: React.FC = () => {
   const {
@@ -115,6 +119,13 @@ const WalletAuth: React.FC = () => {
     }
   };
 
+  // Map provider ids to logo assets
+  const providerLogos: Record<string, string> = {
+    petra: petraLogo,
+    pontem: pontemLogo,
+    walletconnect: wcLogo,
+  };
+
   if (!walletAddress) {
     return (
       <Popover open={open} onOpenChange={setOpen}>
@@ -144,6 +155,7 @@ const WalletAuth: React.FC = () => {
                     }
                     setOpen(false);
                   }} className="w-full justify-start text-sm">
+                    <img src={providerLogos[p.id] ?? genericWalletLogo} alt="" className="w-4 h-4 mr-2" aria-hidden="true" />
                     {p.name}
                   </Button>
                 </li>

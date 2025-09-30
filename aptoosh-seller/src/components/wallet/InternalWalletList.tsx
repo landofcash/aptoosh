@@ -28,7 +28,7 @@ const InternalWalletList: React.FC<InternalWalletListProps> = ({
 }) => {
   return (
     <div>
-      <div className="text-xs text-muted-foreground mb-2">Internal wallets</div>
+      <div className="text-xs text-muted-foreground mb-2">Built-in (Internal) Wallets</div>
       <ul className="space-y-2">
         {addresses.map((addr) => {
           const isActive = activeAddress === addr

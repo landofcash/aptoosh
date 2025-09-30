@@ -8,12 +8,12 @@ import {petraWalletAdapter} from './wallet/adapters/petraWalletAdapter.ts'
 import {pontemWalletAdapter} from './wallet/adapters/pontemWalletAdapter'
 import {createAptosWalletConnectAdapter} from './wallet/adapters/aptosWalletConnectAdapter'
 import {internalWalletAdapter} from './wallet/adapters/internalWalletAdapter'
-import {circleWalletAdapter} from './wallet/adapters/circleWalletAdapter'
+//import {circleWalletAdapter} from './wallet/adapters/circleWalletAdapter'
 
 function createAdaptersForChain(chain: ChainId): WalletAdapter[] {
   if (chain !== 'aptos') return []
   const wc = createAptosWalletConnectAdapter()
-  return [circleWalletAdapter, petraWalletAdapter, pontemWalletAdapter, wc]
+  return [petraWalletAdapter, pontemWalletAdapter, wc]
 }
 
 // Registry of external wallet adapters by chain

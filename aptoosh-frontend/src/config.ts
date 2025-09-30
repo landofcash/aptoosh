@@ -11,10 +11,8 @@ export const APP_KEY_PREFIX = 'Aptoosh';
 const APTOS_EXPLORER_BASE = 'https://explorer.aptoslabs.com';
 const WALLETCONNECT_PROJECT_ID = '9cec891357250a5edfd42c4723e635be';
 
-// Circle Web SDK configuration (frontend hardcoded)
-// Leave APP_ID and BASE_URL empty if not used. Set BASE_URL to your backend origin if you use server-issued user tokens.
+
 export const CIRCLE_APP_ID: string = 'a8986a00-6cbf-51f9-82ca-9945055526f6';
-export const CIRCLE_BASE_URL: string = '';
 
 // Maximum size for order payload in bytes (2KB)
 // while keeping transaction costs reasonable
@@ -78,7 +76,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
 
   testnet: {
     name: 'testnet',
-    account: '0x84171af48f266ba207890b75e78b503336c1cef911f693d65eb770da000f971f',
+    account: '0x56397d22cd1f3ee037d59677e61ea72c6a11d73777705df4cd489a4dea83244d',
     apiUrl: 'https://sync.aptoosh.com/api/t',
     fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
     circleApiUrl: 'https://sync.aptoosh.com/api/circle',
@@ -96,6 +94,9 @@ const configs: Record<NetworkId, NetworkConfig> = {
     ],
     supportedTokens: [
       { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
+      { id: 1,
+        name: 'USDC', decimals: 6, img:null,
+        coinType: '0x69091fbab5f7d635ee7ac5098cf0c1efbe31d68fec0f2cd565e8d168daf52832::asset::USDC' },
     ],
     defaultGasUnitPrice: 100,
     maxGasAmount: 200_000,
@@ -106,7 +107,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
     account: '0x84171af48f266ba207890b75e78b503336c1cef911f693d65eb770da000f971f',
     apiUrl: 'https://sync.aptoosh.com/api/d',
     fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
-    circleApiUrl: 'https://sync.aptoosh.com/api/circle',
+    circleApiUrl: 'http://localhost:3000/api/circle',
     cdnBasePath: 'https://aptoosh.b-cdn.net',
     aptos: {
       nodeUrl: 'https://fullnode.devnet.aptoslabs.com/v1',

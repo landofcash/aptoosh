@@ -25,21 +25,17 @@ function SettingsPage() {
               Aptoosh Network
             </div>
             <div className="flex gap-2 flex-wrap">
-              <Button variant={network === 'testnet' ? 'default' : 'outline'} onClick={() => switchNetwork('testnet')}
-                      size="sm">
-                Testnet
-              </Button>
               <Button variant={network === 'mainnet' ? 'default' : 'outline'} onClick={() => switchNetwork('mainnet')}
                       size="sm">
                 Mainnet
               </Button>
+              <Button variant={network === 'testnet' ? 'default' : 'outline'} onClick={() => switchNetwork('testnet')}
+                      size="sm">
+                Testnet
+              </Button>
               <Button variant={network === 'devnet' ? 'default' : 'outline'} onClick={() => switchNetwork('devnet')}
                       size="sm">
                 Devnet
-              </Button>
-              <Button variant={network === 'local' ? 'default' : 'outline'} onClick={() => switchNetwork('local')}
-                      size="sm">
-                Local
               </Button>
             </div>
           </div>

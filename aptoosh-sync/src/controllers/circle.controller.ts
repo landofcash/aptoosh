@@ -4,7 +4,11 @@ import axios from 'axios';
 import { sendJson } from '../utils/respond';
 import { ApiResponse } from '../types/types';
 import '../config';
-import { initiateUserControlledWalletsClient } from '@circle-fin/user-controlled-wallets';
+import {
+  Blockchain,
+  CircleUserControlledWalletsClient,
+  initiateUserControlledWalletsClient
+} from '@circle-fin/user-controlled-wallets';
 
 function notImplemented(res: Response, name: string) {
   const response: ApiResponse<any> = {
@@ -15,7 +19,7 @@ function notImplemented(res: Response, name: string) {
 }
 
 // Lazy Circle client singleton
-let circleClient: any | null = null;
+let circleClient: CircleUserControlledWalletsClient | null = null;
 function getCircleClient() {
   if (!circleClient) {
     const apiKey = process.env.CIRCLE_API_KEY;
@@ -28,25 +32,14 @@ function getCircleClient() {
 // Simple in-memory user token cache
 const userTokenCache = new Map<string, { userToken: string; encryptionKey: string; exp: number }>();
 
-// Public Key
-export async function getPublicKey(_req: Request, res: Response) {
-  try {
-    const client = getCircleClient();
-    const response = await (client as any).getPublicKey?.();
-    const publicKey = response?.data?.publicKey ?? null;
-    sendJson(res, { success: true, data: { publicKey } } satisfies ApiResponse<any>);
-  } catch (err: any) {
-    sendJson(res, { success: false, error: err?.message || 'Failed to get public key' } satisfies ApiResponse<never>, 500);
-  }
-}
 
 // Users
 export async function createUser(_req: Request, res: Response) {
   try {
     const client = getCircleClient();
     const userId = randomUUID();
-    const response = await (client as any).createUser({ userId });
-    const user = response?.data?.user || { id: userId, userId };
+    const response = await client.createUser({ userId });
+    const user = { id: response.data?.id??userId, userId };
     sendJson(res, { success: true, data: { user } } satisfies ApiResponse<any>);
   } catch (err: any) {
     sendJson(res, { success: false, error: err?.message || 'Failed to create user' } satisfies ApiResponse<never>, 500);
@@ -67,7 +60,7 @@ export async function createUserToken(req: Request, res: Response) {
     }
 
     const client = getCircleClient();
-    const response = await (client as any).createUserToken({ userId });
+    const response = await client.createUserToken({ userId });
     const userToken = response?.data?.userToken;
     const encryptionKey = response?.data?.encryptionKey;
     if (!userToken || !encryptionKey) {
@@ -81,22 +74,6 @@ export async function createUserToken(req: Request, res: Response) {
   }
 }
 
-// Wallets
-export async function createWallet(req: Request, res: Response) {
-  try {
-    const { userId, count, metadata } = (req.body || {}) as { userId?: string; count?: number; metadata?: any };
-    if (!userId) return sendJson(res, { success: false, error: 'userId is required' } satisfies ApiResponse<never>, 400);
-    const c = typeof count === 'number' ? count : 1;
-    if (c < 1 || c > 50) return sendJson(res, { success: false, error: 'count must be between 1 and 50' } satisfies ApiResponse<never>, 400);
-    const client = getCircleClient();
-    const blockchains = ['APTOS-TESTNET'];
-    const response = await (client as any).createWallets({ userId, blockchains, count: c, metadata });
-    const wallets = response?.data?.wallets || [];
-    sendJson(res, { success: true, data: { wallets } } satisfies ApiResponse<any>);
-  } catch (err: any) {
-    sendJson(res, { success: false, error: err?.message || 'Failed to create wallets' } satisfies ApiResponse<never>, 500);
-  }
-}
 export const listWallets = (_req: Request, res: Response) => notImplemented(res, 'listWallets');
 export const getWallet = (_req: Request, res: Response) => notImplemented(res, 'getWallet');
 
@@ -116,12 +93,21 @@ export const listTransactions = (_req: Request, res: Response) => notImplemented
 export async function pinWithWallets(req: Request, res: Response) {
   try {
     const { userToken, blockchains, metadata, accountType, idempotencyKey } = (req.body || {}) as {
-      userToken?: string; blockchains?: string[]; metadata?: { name?: string }[]; accountType?: 'EOA' | 'SCA'; idempotencyKey?: string;
+      userToken?: string;
+      blockchains?: string[];
+      metadata?: { name?: string }[];
+      accountType?: 'EOA' | 'SCA';
+      idempotencyKey?: string;
     };
-    if (!userToken) return sendJson(res, { success: false, error: 'userToken is required' } satisfies ApiResponse<never>, 400);
-    if (!blockchains || !Array.isArray(blockchains) || blockchains.length < 1) return sendJson(res, { success: false, error: 'blockchains is required' } satisfies ApiResponse<never>, 400);
+    if (!userToken) {
+      return sendJson(res, { success: false, error: 'userToken is required' } satisfies ApiResponse<never>, 400);
+    }
+    if (!blockchains || !Array.isArray(blockchains) || blockchains.length < 1) {
+      return sendJson(res, { success: false, error: 'blockchains is required' } satisfies ApiResponse<never>, 400);
+    }
     const client = getCircleClient();
     const response = await (client as any).createUserPinWithWallets({ userToken, blockchains, metadata, accountType, idempotencyKey });
+    console.log('createUserPinWithWallets response:', response.data);
     const challengeId = response?.data?.challengeId;
     if (!challengeId) return sendJson(res, { success: false, error: 'Failed to create PIN + wallets challenge' } satisfies ApiResponse<never>, 500);
     sendJson(res, { success: true, data: { challengeId } } satisfies ApiResponse<any>);
@@ -138,6 +124,7 @@ export async function getChallengeStatus(req: Request, res: Response) {
     if (!userToken) return sendJson(res, { success: false, error: 'userToken is required' } satisfies ApiResponse<never>, 400);
     const client = getCircleClient();
     const response = await (client as any).getUserChallenge({ userToken, challengeId });
+    console.log('getUserChallenge response:', response.data);
     const challenge = response?.data?.challenge;
     sendJson(res, { success: true, data: { challenge } } satisfies ApiResponse<any>);
   } catch (err: any) {

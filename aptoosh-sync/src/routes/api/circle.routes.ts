@@ -2,7 +2,6 @@ import express from 'express';
 import { asyncHandler } from '../../utils/asyncHandler';
 import {
   // Extra Circle helpers
-  getPublicKey,
   createUserToken,
   pinWithWallets,
   getChallengeStatus,
@@ -11,7 +10,6 @@ import {
   createUser,
   getUser,
   // Wallets
-  createWallet,
   listWallets,
   getWallet,
   // Addresses
@@ -33,7 +31,6 @@ import {
 const router = express.Router({ mergeParams: true });
 
 // Circle UCW helpers
-router.get('/public-key', asyncHandler(getPublicKey));
 router.post('/users/token', asyncHandler(createUserToken));
 router.post('/users/pin-with-wallets', asyncHandler(pinWithWallets));
 router.get('/users/challenges/:challengeId', asyncHandler(getChallengeStatus));
@@ -44,7 +41,6 @@ router.post('/users', asyncHandler(createUser));
 router.get('/users/:userId', asyncHandler(getUser));
 
 // Wallets
-router.post('/wallets', asyncHandler(createWallet));
 router.get('/wallets', asyncHandler(listWallets));
 router.get('/wallets/:walletId', asyncHandler(getWallet));
 

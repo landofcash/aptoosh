@@ -15,6 +15,10 @@ import {
   importInternalWallet,
 } from "@/lib/crypto/internalWallet";
 import {truncateString} from "@/lib/cryptoFormat.ts";
+import petraLogo from "@/assets/petra-logo.svg";
+import pontemLogo from "@/assets/pontem-logo.svg";
+import wcLogo from "@/assets/wc-logo.svg";
+import genericWalletLogo from "@/assets/wallet.svg";
 
 // Simple network switcher for Aptos
 type NetworkId = "mainnet" | "testnet" | "devnet";
@@ -174,6 +178,13 @@ const WalletAuth: React.FC = () => {
   const providers = availableExternalProviders
     .filter((p) => (p.id === "walletconnect" ? true : p.installed));
 
+  // Map provider ids to logo assets
+  const providerLogos: Record<string, string> = {
+    petra: petraLogo,
+    pontem: pontemLogo,
+    walletconnect: wcLogo,
+  };
+
   if (!walletAddress) {
     return (
       <div ref={containerRef} className="inline-block w-full max-w-full">
@@ -204,6 +215,7 @@ const WalletAuth: React.FC = () => {
                       className="w-full justify-start text-sm"
                       disabled={busy}
                     >
+                      <img src={providerLogos[p.id] ?? genericWalletLogo} alt="" className="w-4 h-4 mr-2" aria-hidden="true" />
                       {p.name}
                     </Button>
                   </li>

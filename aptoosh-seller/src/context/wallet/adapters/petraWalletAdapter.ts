@@ -11,7 +11,7 @@ function provider(): PetraWalletProvider | null {
 
 export const petraWalletAdapter: WalletAdapter = {
   chain: 'aptos',
-  name: 'Petra (browser)',
+  name: 'Petra Wallet',
   id: 'petra',
 
   isInstalled() {
