@@ -1,5 +1,4 @@
 import React, {useState} from 'react'
-import {createPortal} from 'react-dom'
 import {Button} from '@/components/ui/button'
 import {Eye, EyeOff, Copy} from 'lucide-react'
 
@@ -70,7 +69,7 @@ const ExportModal: React.FC<ExportModalProps> = ({open, address, mnemonic, onClo
     </div>
   )
 
-  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal
+  return modal
 }
 
 export default ExportModal

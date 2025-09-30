@@ -195,7 +195,7 @@ const WalletAuth: React.FC = () => {
           aria-controls="wallet-connect-panel"
         >
           <WalletIcon className="w-4 h-4" />
-          <span className="hidden sm:inline">Connect Wallet</span>
+          <span>Connect Wallet</span>
         </Button>
 
         {openConnect && (
@@ -257,7 +257,8 @@ const WalletAuth: React.FC = () => {
               onConfirm={confirmDelete}
               onCancel={() => setConfirmDeleteAddr(null)}
             />
-            <ExportModal open={exportOpen} address={exportAddr} mnemonic={exportMnemonic} onClose={() => { setExportOpen(false); setExportAddr(null); setExportMnemonic(null); }} />
+            <ExportModal open={exportOpen} address={exportAddr} mnemonic={exportMnemonic}
+                         onClose={() => { setExportOpen(false); setExportAddr(null); setExportMnemonic(null); }} />
             <ImportModal open={importOpen} onClose={() => setImportOpen(false)} onImport={handleImportSubmit} />
           </div>
         )}
@@ -271,12 +272,12 @@ const WalletAuth: React.FC = () => {
         variant="outline"
         aria-label="Wallet Menu"
         onClick={() => setOpen((s) => !s)}
-        className="w-full items-center gap-1 px-2 py-1 text-sm sm:px-3 sm:gap-2 cursor-pointer bg-blue-200 hover:bg-blue-300"
+        className="w-full items-center gap-1 px-2 py-1 text-sm sm:px-3 sm:gap-2 cursor-pointer bg-green-200 hover:bg-green-300"
         aria-expanded={open}
         aria-controls="wallet-menu-panel"
       >
         <WalletIcon className="w-4 h-4" />
-        <span className="hidden sm:inline">
+        <span>
           {truncateString(walletAddress)}
         </span>
       </Button>
