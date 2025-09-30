@@ -4,6 +4,7 @@ import path from 'path'
 import tailwindcss from "@tailwindcss/postcss";
 import autoprefixer from "autoprefixer";
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import pkg from './package.json' with { type: 'json' }
 
 export default defineConfig({
   resolve: {
