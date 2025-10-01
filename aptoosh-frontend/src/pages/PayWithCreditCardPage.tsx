@@ -225,7 +225,7 @@ function PayWithCreditCardPage() {
   const {cartItems, deliveryInfo, tokenTotals} = order
 
   // Calculate total in USD (simplified conversion)
-  const totalUSD = Object.entries(tokenTotals).reduce((sum, [tokenId, total]) => {
+  const totalUSD = Object.entries(tokenTotals).reduce((sum, [tokenType, total]) => {
     // TODO: Implement real-time crypto to USD conversion
     // For now, using simplified conversion rates by coinType
     const conversionRates: Record<string, number> = {
@@ -233,7 +233,7 @@ function PayWithCreditCardPage() {
       '0x69091fbab5f7d635ee7ac5098cf0c1efbe31d68fec0f2cd565e8d168daf52832::asset::USDC': 1.0, // Devnet USDC
     }
 
-    const rate = conversionRates[tokenId] || 1.0
+    const rate = conversionRates[tokenType] || 1.0
     const amount = Number(total) / 1000000 // Convert from base units
     return sum + (amount * rate)
   }, 0)
@@ -363,11 +363,11 @@ function PayWithCreditCardPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div className="font-medium">Crypto Amounts:</div>
-                {Object.entries(tokenTotals).map(([tokenId, total]) => (
-                  <div key={tokenId} className="flex items-center justify-between text-sm">
+                {Object.entries(tokenTotals).map(([tokenType, total]) => (
+                  <div key={tokenType} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
-                      <TokenIcon assetId={tokenId} size={16}/>
-                      <span>{priceToDisplayString(tokenId, total)}</span>
+                      <TokenIcon assetId={tokenType} size={16}/>
+                      <span>{priceToDisplayString(tokenType, total)}</span>
                     </div>
                   </div>
                 ))}

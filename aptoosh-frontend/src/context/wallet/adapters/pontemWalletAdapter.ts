@@ -11,12 +11,12 @@ function provider(): PontemWalletProvider | null {
 
 export const pontemWalletAdapter: WalletAdapter = {
   chain: 'aptos',
-  name: 'Pontem',
+  name: 'Pontem Wallet',
   id: 'pontem',
 
   isInstalled() {
     const p = provider();
-    return !!(p && (p.isPontem || p.account || p.connect));
+    return !!p;
   },
 
   async getAddress():Promise<string | null> {
@@ -45,17 +45,7 @@ export const pontemWalletAdapter: WalletAdapter = {
   async connect(opts?: { silent?: boolean }) {
     const p = provider();
     if (!p?.connect) throw new Error('No Pontem wallet provider found');
-
-    // Silent path: do not open any UI
-    if (opts?.silent) {
-      try {
-        const a = await p.account?.();
-        return a ?? null;
-      } catch {
-        return null;
-      }
-    }
-    await p.connect({ onlyIfTrusted: false });
+    await p.connect({onlyIfTrusted: !!opts?.silent});
     const a = await p.account();
     return a ?? null;
   },

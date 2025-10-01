@@ -29,7 +29,6 @@ interface Product {
   Name: string;
   Description: string;
   Price: number;
-  // Store coinType string
   PriceToken: string;
   Image: string;
   LocalFile?: File;
@@ -43,7 +42,6 @@ type EditableProduct = {
   Name: string;
   Description: string;
   Price: string;       // full-unit price
-  // coinType string
   PriceToken: string;
   LocalFile?: File;
 };
@@ -69,7 +67,7 @@ function CatalogueEditPage() {
 
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const [products, setProducts] = useState<Product[]>([]);
-  const [lastSelectedTokenId, setLastSelectedTokenId] = useState<string>(supportedTokens[0]?.coinType ?? '');
+  const [lastSelectedTokenType, setLastSelectedTokenType] = useState<string>(supportedTokens[0]?.coinType ?? '');
   const [newProduct, setNewProduct] = useState<EditableProduct>({
     Name: '',
     Description: '',
@@ -171,7 +169,7 @@ function CatalogueEditPage() {
     });
 
     // Remember the selected token for next product
-    setLastSelectedTokenId(newProduct.PriceToken);
+    setLastSelectedTokenType(newProduct.PriceToken);
 
     setNewProduct({
       Name: '',
@@ -238,7 +236,7 @@ function CatalogueEditPage() {
       Name: '',
       Description: '',
       Price: '',
-      PriceToken: lastSelectedTokenId, // Use the last selected token
+      PriceToken: lastSelectedTokenType, // Use the last selected token
     });
     setEditingId(null);
     setShowModal(true);

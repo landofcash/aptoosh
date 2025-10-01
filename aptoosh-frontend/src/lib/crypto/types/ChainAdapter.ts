@@ -75,7 +75,7 @@ export interface ChainAdapter {
    * @param payloadHashSeller The seller's payload hash (bytes)
    * @param encryptedDeliveryCommentData The encrypted delivery comment data (bytes)
    * @param senderAddress The sender's chain address (seller)
-   * @param tokenIds list of tokenIds that are used
+   * @param tokenTypes list of tokenTypes that are used
    * @param payerAddress where to return funds
    * @returns The transaction ID
    */
@@ -84,7 +84,7 @@ export interface ChainAdapter {
     payloadHashSeller: string,
     encryptedDeliveryCommentData: string,
     senderAddress: string,
-    tokenIds: number[],
+    tokenTypes: string[],
     payerAddress: string
   ): Promise<string>
 

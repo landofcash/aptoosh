@@ -16,7 +16,7 @@ export const pontemWalletAdapter: WalletAdapter = {
 
   isInstalled() {
     const p = provider();
-    return !!(p && (p.isPontem || p.account || p.connect));
+    return !!p;
   },
 
   async getAddress():Promise<string | null> {

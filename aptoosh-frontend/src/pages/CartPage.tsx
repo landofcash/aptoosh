@@ -86,9 +86,9 @@ function CartPage() {
   const handleOrderFromShop = (items: CartItem[]) => {
     // Calculate token totals for this specific shop
     const shopTokenTotals = items.reduce((totals, item) => {
-      const tokenId = item.priceToken
+      const tokenType = item.priceToken
       const itemTotal = item.price * BigInt(item.quantity)
-      totals[tokenId] = (totals[tokenId] || 0n) + itemTotal
+      totals[tokenType] = (totals[tokenType] || 0n) + itemTotal
       return totals
     }, {} as Record<string, bigint>)
 
@@ -131,9 +131,9 @@ function CartPage() {
   // Calculate total by token type for all items (for display purposes)
   const globalTokenTotals = useMemo(() => {
     return visibleItems.reduce((totals, item) => {
-      const tokenId = item.priceToken
+      const tokenType = item.priceToken
       const itemTotal = item.price * BigInt(item.quantity)
-      totals[tokenId] = (totals[tokenId] || 0n) + itemTotal
+      totals[tokenType] = (totals[tokenType] || 0n) + itemTotal
       return totals
     }, {} as Record<string, bigint>)
   }, [visibleItems])
@@ -159,9 +159,9 @@ function CartPage() {
                 {Object.entries(groupedItems).map(([shopWallet, items]) => {
                   // Calculate token totals for this specific shop
                   const shopTokenTotals = items.reduce((totals, item) => {
-                    const tokenId = item.priceToken
+                    const tokenType = item.priceToken
                     const itemTotal = item.price * BigInt(item.quantity)
-                    totals[tokenId] = (totals[tokenId] || 0n) + itemTotal
+                    totals[tokenType] = (totals[tokenType] || 0n) + itemTotal
                     return totals
                   }, {} as Record<string, bigint>)
 
@@ -229,15 +229,15 @@ function CartPage() {
                         {/* Shop Total and Order Button */}
                         <div className="pt-3 border-t space-y-3">
                           <div className="space-y-2">
-                            {Object.entries(shopTokenTotals).map(([tokenId, total], index) => (
-                              <div key={tokenId} className="flex items-center justify-between">
+                            {Object.entries(shopTokenTotals).map(([tokenType, total], index) => (
+                              <div key={tokenType} className="flex items-center justify-between">
                                 <span className="font-medium">
                                   {index === 0 ? 'Shop Total:' : ''}
                                 </span>
                                 <div className="flex items-center gap-2">
-                                  <TokenIcon assetId={tokenId} size={20}/>
+                                  <TokenIcon assetId={tokenType} size={20}/>
                                   <span className="font-bold">
-                                    {priceToDisplayString(tokenId, total)}
+                                    {priceToDisplayString(tokenType, total)}
                                   </span>
                                 </div>
                               </div>
@@ -262,15 +262,15 @@ function CartPage() {
               <div className="pt-4 border-t space-y-4">
                 {/* Global Total (for reference) */}
                 <div className="space-y-2">
-                  {Object.entries(globalTokenTotals).map(([tokenId, total], index) => (
-                    <div key={tokenId} className="flex items-center justify-between">
+                  {Object.entries(globalTokenTotals).map(([tokenType, total], index) => (
+                    <div key={tokenType} className="flex items-center justify-between">
                       <span className="font-medium">
                         {index === 0 ? 'Grand Total:' : ''}
                       </span>
                       <div className="flex items-center gap-2">
-                        <TokenIcon assetId={tokenId} size={20}/>
+                        <TokenIcon assetId={tokenType} size={20}/>
                         <span className="font-bold">
-                          {priceToDisplayString(tokenId, total)}
+                          {priceToDisplayString(tokenType, total)}
                         </span>
                       </div>
                     </div>

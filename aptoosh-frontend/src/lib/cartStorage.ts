@@ -1,4 +1,5 @@
 import {z} from "zod"
+import {APP_KEY_PREFIX} from "@/config.ts";
 
 export const CartItemSchema = z.object({
   id: z.string(),
@@ -15,7 +16,7 @@ export const CartItemSchema = z.object({
 
 export type CartItem = z.infer<typeof CartItemSchema>
 
-const CART_STORAGE_KEY = 'aptoosh_cart'
+const CART_STORAGE_KEY = `${APP_KEY_PREFIX}-cart`
 
 export function getCartItems(): CartItem[] {
   try {

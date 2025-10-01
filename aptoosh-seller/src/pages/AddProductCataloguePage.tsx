@@ -6,7 +6,7 @@ import {Button} from '@/components/ui/button'
 import {useWallet} from '@/context/WalletContext'
 import {ProductCatalogueSchema, type ProductCatalogue} from '@/lib/productSchemas'
 import TokenIcon from '@/components/TokenIcon'
-import {priceToDisplayString} from '@/lib/tokenUtils'
+import {priceToDisplayString, getSupportedTokens} from '@/lib/tokenUtils'
 import {formatCryptoError} from '@/lib/cryptoFormat'
 import {encodeBase64Uuid} from '@/lib/uuidUtils'
 import {generateKeyPairFromB64} from '@/utils/keygen'
@@ -69,6 +69,15 @@ function AddProductCataloguePage() {
 
       const data = await response.json()
       const parsedCatalogue = ProductCatalogueSchema.parse(data)
+
+      // Validate that each product's PriceToken is supported
+      const supported = new Set(getSupportedTokens().map(t => t.coinType))
+      const invalid = parsedCatalogue.filter(p => !supported.has(p.PriceToken))
+      if (invalid.length > 0) {
+        const invalidTokens = Array.from(new Set(invalid.map(p => p.PriceToken))).join(', ')
+        throw new Error(`Catalogue contains unsupported token type(s): ${invalidTokens}`)
+      }
+
       setCatalogue(parsedCatalogue)
     } catch (err) {
       let errorMessage = 'Failed to load catalogue'

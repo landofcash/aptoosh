@@ -48,7 +48,7 @@ export interface ChainAdapter {
    * @param seed The order seed (bytes)
    * @param payloadHashSeller The seller's payload hash (bytes)
    * @param payloadEncrypted
-   * @param tokenIds
+   * @param tokenTypes
    * @returns The transaction ID
    */
   refuseOrderOnBlockchain(
@@ -56,7 +56,7 @@ export interface ChainAdapter {
     seed: string,
     payloadHashSeller: string,
     payloadEncrypted: string,
-    tokenIds: number[]|string[],
+    tokenTypes: string[],
   ): Promise<string>
 
   /**

@@ -17,7 +17,6 @@ import {
 } from "@/lib/crypto/internalWallet";
 import petraLogo from "@/assets/petra-logo.svg";
 import pontemLogo from "@/assets/pontem-logo.svg";
-import wcLogo from "@/assets/wc-logo.svg";
 import genericWalletLogo from "@/assets/wallet.svg";
 
 const WalletAuth: React.FC = () => {
@@ -122,8 +121,7 @@ const WalletAuth: React.FC = () => {
   // Map provider ids to logo assets
   const providerLogos: Record<string, string> = {
     petra: petraLogo,
-    pontem: pontemLogo,
-    walletconnect: wcLogo,
+    pontem: pontemLogo
   };
 
   if (!walletAddress) {
@@ -148,10 +146,6 @@ const WalletAuth: React.FC = () => {
                     if (p.installed) {
                       setExternalProviderId(p.id);
                       await connect({kind: "external", chain: "aptos", providerId: p.id});
-                    } else {
-                      // Fall back to WalletConnect QR for mobile wallets
-                      setExternalProviderId("walletconnect");
-                      await connect({kind: "external", chain: "aptos", providerId: "walletconnect"});
                     }
                     setOpen(false);
                   }} className="w-full justify-start text-sm">

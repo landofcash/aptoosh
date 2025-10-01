@@ -79,6 +79,7 @@ export interface SellerOrdersResponse {
   data: BuyerOrderGroup[]
 }
 
+
 /**
  * Fetches products for a specific wallet address
  */

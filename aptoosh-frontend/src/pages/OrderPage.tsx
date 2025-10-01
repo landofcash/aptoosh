@@ -140,12 +140,12 @@ function OrderPage() {
 
               <div className="pt-4 border-t space-y-2">
                 <div className="font-bold">Total:</div>
-                {Object.entries(tokenTotals).map(([tokenId, total]) => (
-                  <div key={tokenId} className="flex items-center justify-between">
+                {Object.entries(tokenTotals).map(([tokenType, total]) => (
+                  <div key={tokenType} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <TokenIcon assetId={tokenId} size={20}/>
+                      <TokenIcon assetId={tokenType} size={20}/>
                       <span className="font-bold">
-                        {priceToDisplayString(tokenId, total)}
+                        {priceToDisplayString(tokenType, total)}
                       </span>
                     </div>
                   </div>

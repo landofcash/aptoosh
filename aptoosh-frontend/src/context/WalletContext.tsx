@@ -1,19 +1,16 @@
 import {createContext, useContext, useState, useCallback, type ReactNode, useEffect, useMemo} from 'react'
-import {getCurrentConfig} from '@/config'
+import {APP_KEY_PREFIX, getCurrentConfig} from '@/config'
 import {getActiveInternalWallet, loadAllInternalWallets, setActiveInternalWallet} from "@/lib/crypto/internalWallet.ts"
 import {setChainAdapter} from '@/lib/crypto/cryptoUtils.ts'
 import {aptosAdapter} from '@/lib/crypto/providers/aptosAdapter.ts'
 import type {ChainId, NetworkId, WalletKind, WalletAdapter} from './wallet/types'
 import {petraWalletAdapter} from './wallet/adapters/petraWalletAdapter.ts'
 import {pontemWalletAdapter} from './wallet/adapters/pontemWalletAdapter'
-import {createAptosWalletConnectAdapter} from './wallet/adapters/aptosWalletConnectAdapter'
 import {internalWalletAdapter} from './wallet/adapters/internalWalletAdapter'
-//import {circleWalletAdapter} from './wallet/adapters/circleWalletAdapter'
 
 function createAdaptersForChain(chain: ChainId): WalletAdapter[] {
   if (chain !== 'aptos') return []
-  const wc = createAptosWalletConnectAdapter()
-  return [petraWalletAdapter, pontemWalletAdapter, wc]
+  return [petraWalletAdapter, pontemWalletAdapter]
 }
 
 // Registry of external wallet adapters by chain
@@ -28,7 +25,7 @@ export interface WalletContextType {
   chain: ChainId
   walletKind: WalletKind | null
 
-  // Which external provider is selected (e.g., 'petra', 'walletconnect')
+  // Which external provider is selected (e.g., 'petra')
   externalProviderId: string | null
   availableExternalProviders: { id: string; name: string; installed: boolean }[]
 
@@ -51,9 +48,9 @@ const WalletContext = createContext<WalletContextType | null>(null)
 export function WalletProvider({children}: { children: ReactNode }) {
   const [walletAddress, setWalletAddress] = useState<string | null>(null)
   const [walletKind, setWalletKind] = useState<WalletKind | null>(null)
-  const [chain, setChain] = useState<ChainId>(() => (localStorage.getItem('chain') as ChainId) || 'aptos')
-  const [network, setNetwork] = useState<NetworkId>(() => (getCurrentConfig().name as NetworkId) || (localStorage.getItem('network') as NetworkId) || 'testnet')
-  const [externalProviderId, setExternalProviderIdState] = useState<string | null>(() => localStorage.getItem('externalProviderId'))
+  const [chain, setChain] = useState<ChainId>(() => (localStorage.getItem(`${APP_KEY_PREFIX}-chain`) as ChainId) || 'aptos')
+  const [network, setNetwork] = useState<NetworkId>(() => (getCurrentConfig().name as NetworkId)  || (localStorage.getItem(`${APP_KEY_PREFIX}-network`) as NetworkId) || 'testnet')
+  const [externalProviderId, setExternalProviderIdState] = useState<string | null>(() => localStorage.getItem(`${APP_KEY_PREFIX}-externalProviderId`))
   const [internalAddresses, setInternalAddresses] = useState<string[]>([])
 
   // crypto layer adapter
@@ -63,29 +60,34 @@ export function WalletProvider({children}: { children: ReactNode }) {
 
   // Persist walletKind
   useEffect(() => {
-    if (walletKind) localStorage.setItem('walletKind', walletKind)
-    else localStorage.removeItem('walletKind')
+    if (walletKind) localStorage.setItem(`${APP_KEY_PREFIX}-walletKind`, walletKind)
+    else localStorage.removeItem(`${APP_KEY_PREFIX}-walletKind`)
   }, [walletKind])
 
   // Persist external provider id
   useEffect(() => {
-    if (externalProviderId) localStorage.setItem('externalProviderId', externalProviderId)
-    else localStorage.removeItem('externalProviderId')
+    if (externalProviderId) localStorage.setItem(`${APP_KEY_PREFIX}-externalProviderId`, externalProviderId)
+    else localStorage.removeItem(`${APP_KEY_PREFIX}-externalProviderId`)
   }, [externalProviderId])
 
   const adapters = useMemo(() => walletAdapters[chain] ?? [], [chain])
 
-  const activeAdapter = useMemo(() => {
-    if (!adapters?.length) return null
+  const activeAdapter: WalletAdapter | null = useMemo(() => {
+    // If internal is selected, that is the active adapter
     if (walletKind === 'internal') return internalWalletAdapter
+
+    // Otherwise, choose an external adapter
+    if (!adapters?.length) return null
     if (externalProviderId) {
       return adapters.find(a => a.id === externalProviderId) ?? adapters[0]
     }
-    return adapters[0]
-  }, [adapters, externalProviderId, walletKind])
+    // Prefer an installed adapter, else first available
+    return adapters.find(a => a.isInstalled?.()) ?? adapters[0]
+  }, [walletKind, adapters, externalProviderId])
 
   const availableExternalProviders = useMemo(() => {
     return (adapters || []).map(a => ({id: a.id, name: a.name, installed: a.isInstalled ? a.isInstalled() : true}))
+      .filter(a => a.installed)
   }, [adapters])
 
   const refreshInternalAddresses = useCallback(async () => {
@@ -112,7 +114,9 @@ export function WalletProvider({children}: { children: ReactNode }) {
   useEffect(() => {
     const attemptReconnect = async () => {
       try {
-        const preferredKind = localStorage.getItem('walletKind') as WalletKind | null
+        const legacyType = localStorage.getItem(`${APP_KEY_PREFIX}-walletType`) as string | null
+        const preferredKind = (localStorage.getItem(`${APP_KEY_PREFIX}-walletKind`) as WalletKind | null)
+          ?? (legacyType ? (legacyType === 'internal' ? 'internal' : 'external') : null)
 
         if (preferredKind === 'internal') {
           const internal = await getActiveInternalWallet()
@@ -124,11 +128,15 @@ export function WalletProvider({children}: { children: ReactNode }) {
         }
 
         if (preferredKind === 'external') {
-          // Try to selected provider silently; if it fails, fall back to any installed adapter silently
-          const candidates = activeAdapter ? [activeAdapter, ...adapters.filter(a => a.id !== activeAdapter.id)] : adapters
+          // Try the selected provider silently; if it fails, fall back to others silently
+          const candidates = adapters ? [
+            externalProviderId ? adapters.find(a => a.id === externalProviderId) : undefined,
+            ...adapters
+          ].filter(Boolean) as WalletAdapter[] : []
+
           for (const a of candidates) {
             try {
-              const addr = await a.connect({silent: true})
+              const addr = await a.connect({ silent: true })
               if (addr) {
                 setWalletAddress(addr)
                 setWalletKind('external')
@@ -152,7 +160,7 @@ export function WalletProvider({children}: { children: ReactNode }) {
     }
 
     void attemptReconnect()
-  }, [chain, activeAdapter, adapters])
+  }, [chain, adapters, externalProviderId])
 
   // Subscribe to account/network changes of active adapter
   useEffect(() => {
@@ -164,7 +172,7 @@ export function WalletProvider({children}: { children: ReactNode }) {
     const offNet = activeAdapter.onNetworkChange?.((n) => {
       if (n) {
         setNetwork(n)
-        localStorage.setItem('network', n)
+        localStorage.setItem(`${APP_KEY_PREFIX}-network`, n)
       }
     })
 
@@ -181,7 +189,8 @@ export function WalletProvider({children}: { children: ReactNode }) {
     silent?: boolean
   }) => {
     try {
-      const targetKind = opts?.kind ?? 'external'
+      const storedKind = localStorage.getItem(`${APP_KEY_PREFIX}-walletKind`) as WalletKind | null
+      const targetKind = opts?.kind ?? storedKind ?? 'external'
       const targetChain = opts?.chain ?? chain
       const desiredProviderId = opts?.providerId ?? externalProviderId ?? undefined
 
@@ -215,7 +224,7 @@ export function WalletProvider({children}: { children: ReactNode }) {
       console.error('Failed to connect wallet:', error)
       throw error
     }
-  }, [chain, externalProviderId])
+  }, [chain, externalProviderId, refreshInternalAddresses])
 
   const disconnect = useCallback(async () => {
     try {
@@ -235,7 +244,7 @@ export function WalletProvider({children}: { children: ReactNode }) {
   const switchNetwork = useCallback((newNetwork: NetworkId) => {
     if (network !== newNetwork) {
       setNetwork(newNetwork)
-      localStorage.setItem('network', newNetwork)
+      localStorage.setItem(`${APP_KEY_PREFIX}-network`, newNetwork)
     }
   }, [network])
 

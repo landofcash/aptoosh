@@ -1,7 +1,7 @@
 export type ChainId = 'aptos' | string;
 export type NetworkId = 'mainnet' | 'testnet' | 'devnet' | 'local' | string;
 export type WalletKind = 'external' | 'internal';
-export type WalletProviderId = 'petra' | 'pontem' | 'walletconnect' | string;
+export type WalletProviderId = 'petra' | 'pontem' | string;
 
 export type EntryFunctionPayload = {
   function: string;

@@ -193,7 +193,7 @@ export const aptosAdapter: ChainAdapter = {
     payloadHashSeller: string,
     encryptedDeliveryCommentData: string,
     senderAddress: string,
-    tokenIds: number[],
+    tokenTypes: string[],
     payerAddress: string
   ): Promise<string> {
     console.log('Refuse order:', {
@@ -201,10 +201,10 @@ export const aptosAdapter: ChainAdapter = {
       payloadHashSeller,
       encryptedDeliveryCommentData,
       senderAddress,
-      tokenIds,
+      tokenTypes,
       payerAddress
     });
-    return "TEST_TX_ID_REFUSE_ORDER";
+    throw new Error("Not implemented");
   },
 
   async startDeliveringOrderOnBlockchain(
@@ -214,7 +214,7 @@ export const aptosAdapter: ChainAdapter = {
     senderAddress: string
   ): Promise<string> {
     console.log('Start delivering:', {seed, payloadHashSeller, encryptedDeliveryCommentData, senderAddress});
-    return "TEST_TX_ID_START_DELIVERING";
+    throw new Error("Not implemented");
   },
 
   async viewProductOnBlockchain(seed: string): Promise<ProductData> {

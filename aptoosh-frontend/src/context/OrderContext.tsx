@@ -54,8 +54,8 @@ function loadOrderFromStorage(): OrderState | null {
       // Convert tokenTotals values back to bigint
       if (key === 'tokenTotals' && typeof value === 'object' && value !== null) {
         const converted: Record<string, bigint> = {}
-        for (const [tokenId, amount] of Object.entries(value)) {
-          converted[tokenId] = BigInt(amount as string)
+        for (const [tokenType, amount] of Object.entries(value)) {
+          converted[tokenType] = BigInt(amount as string)
         }
         return converted
       }

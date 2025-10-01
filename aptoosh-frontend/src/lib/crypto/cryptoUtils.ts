@@ -35,4 +35,3 @@ export function accountToMnemonic(internalAccount: InternalAccount): string {
 export function mapNetworkName(name: string): NetworkId {
   return adapter.mapNetworkName(name);
 }
-

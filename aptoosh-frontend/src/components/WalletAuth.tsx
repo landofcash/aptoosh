@@ -17,7 +17,6 @@ import {
 import {truncateString} from "@/lib/cryptoFormat.ts";
 import petraLogo from "@/assets/petra-logo.svg";
 import pontemLogo from "@/assets/pontem-logo.svg";
-import wcLogo from "@/assets/wc-logo.svg";
 import genericWalletLogo from "@/assets/wallet.svg";
 
 // Simple network switcher for Aptos
@@ -175,14 +174,12 @@ const WalletAuth: React.FC = () => {
     }
   }), [setExternalProviderId, connect, withBusy]);
 
-  const providers = availableExternalProviders
-    .filter((p) => (p.id === "walletconnect" ? true : p.installed));
+  const providers = availableExternalProviders.filter((p) => p.installed);
 
   // Map provider ids to logo assets
   const providerLogos: Record<string, string> = {
     petra: petraLogo,
-    pontem: pontemLogo,
-    walletconnect: wcLogo,
+    pontem: pontemLogo
   };
 
   if (!walletAddress) {

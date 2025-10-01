@@ -45,5 +45,9 @@ export const formatMicroToFull = (microPrice: number | string, digits: number): 
 }
 
 export function formatCryptoError(err: unknown) {
+  console.error(err);
+  if (err instanceof Error) {
+    return err.message;
+  }
   return `error:${err}`;
 }

@@ -1,3 +1,5 @@
+import {APP_KEY_PREFIX} from "@/config";
+
 const ansCache = new Map<string, Promise<string | null>>();
 
 export async function resolveName(address: string): Promise<string | null> {
@@ -9,7 +11,7 @@ export async function resolveAns(address: string): Promise<string | null> {
   if (ansCache.has(address)) return ansCache.get(address)!;
 
   // Check localStorage
-  const cached = localStorage.getItem(`ans_${address}`);
+  const cached = localStorage.getItem(`${APP_KEY_PREFIX}-ans_${address}`);
   if (cached !== null) {
     const result = cached || null;
     ansCache.set(address, Promise.resolve(result));
@@ -40,7 +42,7 @@ export async function resolveAns(address: string): Promise<string | null> {
       const name: string | null =
         data?.data?.current_aptos_names?.[0]?.name ?? null;
 
-      localStorage.setItem(`ans_${address}`, name ?? "");
+      localStorage.setItem(`${APP_KEY_PREFIX}-ans_${address}`, name ?? "");
       return name;
     } catch {
       return null;

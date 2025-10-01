@@ -3,17 +3,17 @@ import {Button} from './components/ui/button'
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from './components/ui/card'
 import {Link} from 'react-router-dom'
 import WalletAuth from './components/WalletAuth'
-import {APP_VERSION} from './config'
+import {APP_VERSION, APP_KEY_PREFIX} from './config'
 import {useEffect} from 'react'
 
 function App() {
   useEffect(() => {
-    const currentVersion = localStorage.getItem('app_version')
+    const currentVersion = localStorage.getItem(`${APP_KEY_PREFIX}-app_version`)
     if (!currentVersion) {
-      localStorage.setItem('app_version', APP_VERSION)
+      localStorage.setItem(`${APP_KEY_PREFIX}-app_version`, APP_VERSION)
     } else if (currentVersion !== APP_VERSION) {
       // Clear all caches and force reload
-      localStorage.setItem('app_version', APP_VERSION)
+      localStorage.setItem(`${APP_KEY_PREFIX}-app_version`, APP_VERSION)
 
       // Clear service worker caches if available
       if ('serviceWorker' in navigator && 'caches' in window) {

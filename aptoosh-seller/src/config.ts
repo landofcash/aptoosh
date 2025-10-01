@@ -1,4 +1,5 @@
 import type {NetworkId} from "@/context/wallet/types.ts";
+import isMobile from 'ismobilejs';
 
 declare const __APP_VERSION__: string;
 export const APP_VERSION = __APP_VERSION__
@@ -9,7 +10,7 @@ export const BASE_URL='https://aptoosh.com'
 export const signPrefix = "aptoosh-";
 export const APP_KEY_PREFIX = 'Aptoosh';
 const APTOS_EXPLORER_BASE = 'https://explorer.aptoslabs.com';
-const WALLETCONNECT_PROJECT_ID = '9cec891357250a5edfd42c4723e635be';
+
 
 // Keep TokenConfig backward-compatible (numeric id) for current UI/helpers
 export interface TokenConfig {
@@ -35,7 +36,6 @@ export interface NetworkConfig {
   fileApiUrl:string;
   aptos: AptosEndpoints;
   explorerBaseUrl: string; // https://explorer.aptoslabs.com
-  walletConnectProjectId?: string | null;
   approvedShopWallets: string[];
   supportedTokens: TokenConfig[];
   defaultGasUnitPrice?: number; // Octas per unit
@@ -55,7 +55,6 @@ const configs: Record<NetworkId, NetworkConfig> = {
       indexerRestUrl: 'https://indexer-mainnet.staging.gcp.aptosdev.com/v1',
     },
     explorerBaseUrl: APTOS_EXPLORER_BASE,
-    walletConnectProjectId: WALLETCONNECT_PROJECT_ID,
     approvedShopWallets: [],
     supportedTokens: [
       { id: 0, name: 'APT', decimals: 8, img:null, coinType: '0x1::aptos_coin::AptosCoin' },
@@ -80,7 +79,6 @@ const configs: Record<NetworkId, NetworkConfig> = {
       faucetUrl: 'https://faucet.testnet.aptoslabs.com',
     },
     explorerBaseUrl: APTOS_EXPLORER_BASE,
-    walletConnectProjectId: WALLETCONNECT_PROJECT_ID,
     approvedShopWallets: [
       '0x0000000000000000000000000000000000000000000000000000000000000001',
     ],
@@ -106,7 +104,6 @@ const configs: Record<NetworkId, NetworkConfig> = {
       faucetUrl: 'https://faucet.devnet.aptoslabs.com',
     },
     explorerBaseUrl: APTOS_EXPLORER_BASE,
-    walletConnectProjectId: WALLETCONNECT_PROJECT_ID,
     approvedShopWallets: [],
     supportedTokens: [
       { id: 0, name: 'APT', decimals: 8, img:null, coinType: '0x1::aptos_coin::AptosCoin' },
@@ -122,7 +119,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
 export const getConfig = (network: NetworkId): NetworkConfig => configs[network];
 
 export const getCurrentConfig = (): NetworkConfig => {
-  const raw = (localStorage.getItem('network') as NetworkId) || 'testnet';
+  const raw = (localStorage.getItem(`${APP_KEY_PREFIX}-network`) as NetworkId) || 'testnet';
   const network: NetworkId = ['mainnet', 'testnet', 'devnet'].includes(raw) ? raw : 'testnet';
   return getConfig(network);
 };
@@ -159,5 +156,13 @@ export function explorerObjectUrl(objectAddress: string, network?: NetworkId): s
   const n = cfg.name;
   const suffix = n === 'mainnet' ? '' : `?network=${n}`;
   return `${cfg.explorerBaseUrl}/object/${objectAddress}${suffix}`;
+}
+
+// Lightweight environment helper to detect mobile web
+
+export function isMobileWeb(): boolean {
+  if (typeof navigator === 'undefined' || typeof window === 'undefined') return false;
+  const { any } = isMobile(navigator.userAgent || '');
+  return any;
 }
 
