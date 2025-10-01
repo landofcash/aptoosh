@@ -402,7 +402,7 @@ function CatalogueEditPage() {
             <div className="pt-2 border-t border-blue-200">
               <p className="text-xs text-blue-600">
                 <strong>Note:</strong> Regardless of where you store your catalogue, only the URL link is recorded on
-                the Algorand blockchain.
+                the blockchain.
                 This ensures decentralization while giving you flexibility in how you manage your product data. </p>
             </div>
           </div>

@@ -329,11 +329,6 @@ function AddProductCataloguePage() {
                   </div>
                   {/* Button and orange message stacked vertically */}
                   <div className="flex w-full sm:w-auto sm:ml-auto gap-2 mt-2 sm:mt-0">
-                    {!isSigningComplete && (
-                      <p className="hidden sm:block mt-1 text-xs text-orange-500 text-right">Open Pera Wallet on your
-                        phone.
-                        <br/>It may not respond if it's in the background.</p>
-                    )}
                     <Button className="w-full sm:w-auto" onClick={handleSignSeed}
                             disabled={isSigningStep || isSigningComplete}
                             variant={isSigningComplete ? "outline" : "default"}>
