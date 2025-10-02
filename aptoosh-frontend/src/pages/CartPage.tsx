@@ -1,10 +1,10 @@
-import {ArrowLeft, Trash2, Store, QrCode, ShoppingCart} from 'lucide-react'
+import {ArrowLeft, Trash2, Store, QrCode, ShoppingCart, AlertTriangle} from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import {Card, CardContent, CardHeader, CardSlim, CardTitle} from '@/components/ui/card'
 import {Link, useLocation, useNavigate} from 'react-router-dom'
 import {useEffect, useMemo, useState} from 'react'
 import {type CartItem, getCartItems, clearCart, saveCartItems} from '@/lib/cartStorage'
-import {priceToDisplayString} from '@/lib/tokenUtils'
+import {priceToDisplayString, getSupportedTokens} from '@/lib/tokenUtils'
 import TokenIcon from '@/components/TokenIcon'
 import AddressDisplay from '@/components/AddressDisplay'
 import ApprovedShopBadge from '@/components/ApprovedShopBadge'
@@ -29,9 +29,24 @@ function CartPage() {
   const state = location.state as LocationState
   const [cartItems, setCartItems] = useState<CartItemWithNetwork[]>([])
   const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null)
+  const [removedUnsupportedCount, setRemovedUnsupportedCount] = useState<number>(0)
 
   useEffect(() => {
-    setCartItems(getCartItems() as CartItemWithNetwork[])
+    const loaded = getCartItems() as CartItemWithNetwork[]
+
+    // Build a set of supported coin types
+    const supported = new Set(getSupportedTokens().map(t => t.coinType))
+
+    // Remove any cart item that uses an unsupported token
+    const cleaned = loaded.filter(it => supported.has(it.priceToken))
+    const removed = loaded.length - cleaned.length
+    if (removed > 0) {
+      setRemovedUnsupportedCount(removed)
+      // Persist the cleaned cart so future visits remain stable
+      saveCartItems(cleaned as CartItem[])
+    }
+
+    setCartItems(cleaned)
 
     // Set the highlighted item if provided in the navigation state
     if (state?.highlightedItemId) {
@@ -150,6 +165,14 @@ function CartPage() {
           <CardTitle className="text-2xl font-bold">Your Cart</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {removedUnsupportedCount > 0 && (
+            <div className="flex items-start gap-2 p-3 rounded-md border border-amber-300 bg-amber-50 text-amber-900">
+              <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600" />
+              <div className="text-sm">
+                {removedUnsupportedCount} item{removedUnsupportedCount > 1 ? 's' : ''} in your cart use unsupported tokens and were removed.
+              </div>
+            </div>
+          )}
           {visibleItems.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               Your cart is empty </div>

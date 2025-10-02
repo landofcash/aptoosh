@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import SloganAndSteps from '@/components/SloganAndSteps'
 import SystemDescription from '@/components/SystemDescription'
-import PeraWalletInstallModal from '@/components/PeraWalletInstallModal'
+import WalletInstallModal from '@/components/WalletInstallModal'
 import { useWallet } from '@/context/WalletContext'
 import { APP_NAME } from '@/config'
 
@@ -108,8 +108,8 @@ function HomeDisconnected() {
           </section>
         </div>
 
-        {/* Pera Wallet Install Modal */}
-        <PeraWalletInstallModal
+        {/* Wallet Install Modal */}
+        <WalletInstallModal
           isOpen={showInstallModal}
           onClose={() => setShowInstallModal(false)}
         />

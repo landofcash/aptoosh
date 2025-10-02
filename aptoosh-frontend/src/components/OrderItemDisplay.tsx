@@ -13,7 +13,7 @@ import OrderStatusBadge from '@/components/OrderStatusBadge'
 import ApprovedShopBadge from '@/components/ApprovedShopBadge'
 import AddressDisplay from '@/components/AddressDisplay'
 import {formatUtcDate} from '@/lib/dateUtils'
-import {priceToDisplayString} from '@/lib/tokenUtils'
+import { safePriceToDisplayString as priceToDisplayString } from '@/lib/tokenUtils'
 import {signPrefix} from '@/config'
 import {formatCryptoError} from "@/lib/cryptoFormat.ts";
 import {getChainAdapter} from "@/lib/crypto/cryptoUtils.ts";

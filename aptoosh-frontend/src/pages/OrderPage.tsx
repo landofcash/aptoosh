@@ -4,7 +4,7 @@ import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 import {Link, useNavigate, Navigate} from 'react-router-dom'
 import {useState} from 'react'
 import {DeliveryInfoForm, type DeliveryInfo} from '@/components/DeliveryInfoForm'
-import {priceToDisplayString} from '@/lib/tokenUtils'
+import { safePriceToDisplayString as priceToDisplayString } from '@/lib/tokenUtils'
 import TokenIcon from '@/components/TokenIcon'
 import {useOrder} from "@/context/OrderContext.tsx";
 import {getCurrentConfig} from '@/config'

@@ -122,7 +122,7 @@ export const petraWalletAdapter: WalletAdapter = {
       return typeof res.signature === 'string' ? hexToBytes(res.signature) : res.signature;
     }
     // Deep-link mode: returns signature string (hex or base64)
-    const sigStr = await startSignMessage(dataToSign, '-');
+    const sigStr = await startSignMessage(dataToSign);
     // Try hex first, fallback to base64
     try {
       return hexToBytes(sigStr);

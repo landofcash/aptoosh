@@ -17,6 +17,7 @@ import {WalletProvider} from './context/WalletContext.tsx'
 import Layout from './components/Layout.tsx'
 import UrlParserAndRedirector from './components/UrlParserAndRedirector.tsx'
 import {OrderProvider} from './context/OrderContext.tsx'
+import CallbackPage from './pages/wallet/petra/CallbackPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -35,6 +36,7 @@ createRoot(document.getElementById('root')!).render(
                             <Route path="/orders" element={<OrderHistoryPage/>}/>
                             <Route path="/pay-crypto" element={<PayWithCryptoPage/>}/>
                             <Route path="/pay-credit-card" element={<PayWithCreditCardPage/>}/>
+                            <Route path="/wallet/petra/callback" element={<CallbackPage/>}/>
                             <Route path="/debug/encrypt" element={<TestEncryptionPage/>}/>
                             <Route path="/debug/decrypt" element={<TestDecryptionPage/>}/>
                         </Routes>

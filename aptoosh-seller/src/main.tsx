@@ -13,7 +13,7 @@ import TestDecryptionPage from './pages/debug/TestDecryptionPage.tsx'
 import {WalletProvider} from './context/WalletContext.tsx'
 import Layout from './components/Layout.tsx'
 import CatalogueEditPage from "@/pages/CatalogueEditPage.tsx";
-import PetraCallback from "@/pages/wallet/PetraCallback.tsx";
+import CallbackPage from './pages/wallet/petra/CallbackPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -28,9 +28,10 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/my-orders" element={<MyOrdersPage/>}/>
             <Route path="/order-details" element={<OrderDetailsPage/>}/>
             <Route path="/edit-product-catalogue" element={<CatalogueEditPage/>}/>
+            <Route path="/wallet/petra/callback" element={<CallbackPage/>}/>
+
             <Route path="/debug/test-encryption" element={<TestEncryptionPage/>}/>
             <Route path="/debug/test-decryption" element={<TestDecryptionPage/>}/>
-            <Route path="/wallet/petra/callback" element={<PetraCallback/>}/>
           </Routes>
         </Layout>
       </BrowserRouter>

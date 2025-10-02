@@ -5,7 +5,7 @@ import {Link, useLocation, Navigate, useNavigate} from 'react-router-dom'
 import {useEffect, useState} from 'react'
 import {ProductCatalogueSchema, type Product} from '@/lib/productSchemas'
 import {addItemToCart} from '@/lib/cartStorage'
-import {priceToDisplayString} from '@/lib/tokenUtils'
+import { safePriceToDisplayString as priceToDisplayString, getSupportedTokens } from '@/lib/tokenUtils'
 import TokenIcon from '@/components/TokenIcon'
 import type {ProductData} from "@/lib/syncService.ts";
 import {getChainAdapter} from "@/lib/crypto/cryptoUtils.ts";
@@ -120,6 +120,9 @@ function ProductDetailPage() {
     }
   }
 
+  const supportedCoinTypes = new Set(getSupportedTokens().map(t => t.coinType))
+  const isSupportedToken = product ? supportedCoinTypes.has(product.PriceToken) : true
+
   const toggleTechnicalDetails = () => {
     setShowTechnicalDetails(prev => !prev)
   }
@@ -178,8 +181,15 @@ function ProductDetailPage() {
                 </div>
               </div>
 
+              {/* Unsupported token warning */}
+              {!isSupportedToken && (
+                <div className="p-3 rounded-md border border-amber-300 bg-amber-50 text-amber-900 text-sm">
+                  This product uses an unsupported payment token and cannot be added to the cart.
+                </div>
+              )}
+
               {/* Add to Cart Button */}
-              <Button className="w-full" size="lg" onClick={handleAddToCart}>
+              <Button className="w-full" size="lg" onClick={handleAddToCart} disabled={!isSupportedToken}>
                 <ShoppingCart className="mr-2 h-5 w-5"/>
                 Add to Cart
               </Button>

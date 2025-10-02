@@ -1,4 +1,4 @@
-import * as ecies from "eciesjs";
+import {decrypt, encrypt} from "eciesjs";
 import {b64ToBytes} from "@/utils/encoding.ts";
 
 /**
@@ -73,7 +73,7 @@ export async function encryptWithECIES(publicKeyHex: string, aesKey: CryptoKey):
     const publicKeyBuffer = b64ToBytes(publicKeyHex);
 
     // Encrypt AES key with ECIES (secp256k1)
-    const encryptedAESKey = ecies.encrypt(publicKeyBuffer, aesKeyBytes);
+    const encryptedAESKey = encrypt(publicKeyBuffer, aesKeyBytes);
 
     // Return encrypted AES key as Base64
     return Buffer.from(encryptedAESKey).toString("base64");
@@ -90,7 +90,7 @@ export async function decryptWithECIES(privateKeyBase64: string, encryptedBase64
     const encryptedBytes = Buffer.from(encryptedBase64, "base64");
 
     // Decrypt AES key bytes using ECIES
-    const decryptedAESBytes = ecies.decrypt(privateKeyBuffer, encryptedBytes);
+    const decryptedAESBytes = decrypt(privateKeyBuffer, encryptedBytes);
 
     // Import as AES-GCM CryptoKey
     return await crypto.subtle.importKey(

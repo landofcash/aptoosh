@@ -11,7 +11,7 @@ export function uuidToBytes(uuid: string): Uint8Array {
   const hex = uuid.replace(/-/g, '')
   const bytes = new Uint8Array(16)
   for (let i = 0; i < 16; i++) {
-    bytes[i] = parseInt(hex.substr(i * 2, 2), 16)
+    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16)
   }
   return bytes
 }
@@ -61,12 +61,12 @@ export function decodeBase64Uuid(base64Uuid: string): string {
   // Convert from base64url to standard base64
   const base64 = base64Uuid.replace(/-/g, "+").replace(/_/g, "/") + "=="
   const binary = atob(base64)
-  
+
   // Convert binary string to Uint8Array
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i)
   }
-  
+
   return bytesToUuid(bytes)
 }

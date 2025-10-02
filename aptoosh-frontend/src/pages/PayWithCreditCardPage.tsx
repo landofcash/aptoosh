@@ -3,7 +3,7 @@ import {Button} from '@/components/ui/button'
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 import {Link, Navigate, useNavigate} from 'react-router-dom'
 import {useState} from 'react'
-import {priceToDisplayString} from '@/lib/tokenUtils'
+import { safePriceToDisplayString as priceToDisplayString, getSupportedTokens } from '@/lib/tokenUtils'
 import TokenIcon from '@/components/TokenIcon'
 import {encodeBase64Uuid} from "@/lib/uuidUtils.ts";
 import {MAX_ORDER_PAYLOAD_BYTES, signPrefix} from "@/config.ts";
@@ -123,6 +123,16 @@ function PayWithCreditCardPage() {
       if (!order) {
         logError('Invalid payment state')
         return
+      }
+
+      // Preflight: ensure all tokens in the order are supported
+      {
+        const supported = new Set(getSupportedTokens().map(t => t.coinType))
+        const bad = Object.keys(order.tokenTotals ?? {}).filter(k => !supported.has(k))
+        if (bad.length) {
+          logError(`Unsupported token in order: ${bad.join(', ')}`)
+          return
+        }
       }
 
       const {tokenTotals, cartItems} = order

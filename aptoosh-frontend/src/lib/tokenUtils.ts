@@ -46,3 +46,19 @@ export function priceToDisplayString(tokenType: string, price: number | bigint, 
   }
   return res;
 }
+
+export function tryGetTokenByType(coinType: string) {
+  const tokens = getSupportedTokens()
+  const key = coinType.trim()
+  return tokens.find(t => t.coinType === key) ?? null
+}
+
+export function safePriceToDisplayString(tokenType: string, price: number | bigint, displayName: boolean = true): string {
+  try {
+    return priceToDisplayString(tokenType, price, displayName)
+  } catch {
+    const priceNum = typeof price === 'bigint' ? Number(price) : price
+    const formatted = priceNum.toLocaleString(undefined, { maximumFractionDigits: 8 })
+    return displayName ? `${formatted}` : formatted
+  }
+}

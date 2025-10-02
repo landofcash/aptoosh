@@ -3,7 +3,7 @@ import {Button} from '@/components/ui/button'
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 import {Link, Navigate, useNavigate} from 'react-router-dom'
 import {useState} from 'react'
-import {priceToDisplayString} from '@/lib/tokenUtils'
+import { safePriceToDisplayString as priceToDisplayString, getSupportedTokens } from '@/lib/tokenUtils'
 import TokenIcon from '@/components/TokenIcon'
 import {useWallet} from '@/context/WalletContext'
 import {MAX_ORDER_PAYLOAD_BYTES, explorerTxUrl} from '@/config'
@@ -64,6 +64,17 @@ function PayWithCryptoPage() {
     if (!order) {
       setError('Invalid payment state')
       return
+    }
+
+    // Preflight: ensure all tokens in the order are supported
+    {
+      const supported = new Set(getSupportedTokens().map(t => t.coinType))
+      const bad = Object.keys(order.tokenTotals ?? {}).filter(k => !supported.has(k))
+      if (bad.length) {
+        setError(`Unsupported token in order: ${bad.join(', ')}`)
+        setPaymentStatus('error')
+        return
+      }
     }
 
     setPaymentStatus('signing-seed')
@@ -352,7 +363,7 @@ function PayWithCryptoPage() {
                   {paymentStatus === 'idle' && (
                     <div className="text-center space-y-2">
                       <p className="text-muted-foreground">
-                        {!walletAdapter ? 'Please connect your Aptos wallet to continue' :
+                        {!walletAddress ? 'Please connect your Aptos wallet to continue' :
                           currentStep === 1 ? 'Ready to sign order seed' : 'Ready to process payment'}
                       </p>
                       {walletAdapter && walletAddress && (
@@ -524,7 +535,7 @@ function PayWithCryptoPage() {
           <div className="space-y-3">
             {paymentStatus === 'idle' && (
               <>
-                {!walletAdapter ? (
+                {!walletAddress ? (
                   <Button className="w-full" size="lg" onClick={handleConnectWallet}>
                     <Wallet className="mr-2 h-5 w-5"/>
                     Connect The Wallet
