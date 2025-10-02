@@ -57,6 +57,11 @@ function SettingsPage() {
                   🔓 Test Decryption
                 </Button>
               </Link>
+              <Link to="/debug/logs/petra" className="block w-full">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  🐞 Petra Deep Link Logs
+                </Button>
+              </Link>
             </div>
           </div>
         </CardContent>

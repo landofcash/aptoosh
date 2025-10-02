@@ -13,11 +13,15 @@ import PayWithCryptoPage from './pages/PayWithCryptoPage.tsx'
 import PayWithCreditCardPage from './pages/PayWithCreditCardPage.tsx'
 import TestEncryptionPage from './pages/debug/TestEncryptionPage.tsx'
 import TestDecryptionPage from './pages/debug/TestDecryptionPage.tsx'
+import LogViewerPage from './pages/debug/LogViewerPage.tsx'
 import {WalletProvider} from './context/WalletContext.tsx'
 import Layout from './components/Layout.tsx'
 import UrlParserAndRedirector from './components/UrlParserAndRedirector.tsx'
 import {OrderProvider} from './context/OrderContext.tsx'
 import CallbackPage from './pages/wallet/petra/CallbackPage.tsx'
+import { resumePendingDeepLinkIfAny } from '@/lib/wallet/deepLinkBridge'
+
+resumePendingDeepLinkIfAny()
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -39,6 +43,8 @@ createRoot(document.getElementById('root')!).render(
                             <Route path="/wallet/petra/callback" element={<CallbackPage/>}/>
                             <Route path="/debug/encrypt" element={<TestEncryptionPage/>}/>
                             <Route path="/debug/decrypt" element={<TestDecryptionPage/>}/>
+                            <Route path="/debug/logs/:category" element={<LogViewerPage/>}/>
+                            <Route path="/debug/petra" element={<LogViewerPage/>}/>
                         </Routes>
                     </Layout>
                 </BrowserRouter>
