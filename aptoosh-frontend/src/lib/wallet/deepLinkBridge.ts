@@ -130,6 +130,9 @@ export async function startConnect(): Promise<string> {
   try {
     localStorage.setItem(PENDING_PREFIX + state, JSON.stringify(record));
     localStorage.setItem(LAST_PENDING_STATE_KEY, state);
+    // Persist intent so WalletContext attempts external reconnect after reload
+    localStorage.setItem(`${APP_KEY_PREFIX}-walletKind`, 'external');
+    localStorage.setItem(`${APP_KEY_PREFIX}-externalProviderId`, 'petra');
   } catch {}
 
   // Generate ephemeral NaCl box keypair and store secret for callback
@@ -322,7 +325,9 @@ export function handlePetraCallback(): void {
   } catch (e: any) {
     logPetra({ phase: 'callbackCrashed', error: e?.message || String(e) });
     // As a last resort, try to redirect home
-    try { window.location.replace('/'); } catch {}
+    try { window.location.replace('/'); } catch {
+      // Ignore
+    }
   }
 }
 
@@ -341,7 +346,11 @@ export function resumePendingDeepLinkIfAny() {
     } catch {}
     logPetra({ phase: 'resume', state, res });
     if (res.ok && res.action === 'connect' && res.address) {
-      try { localStorage.setItem(`${APP_KEY_PREFIX}-petra:last_address`, res.address); } catch {}
+      try {
+        localStorage.setItem(`${APP_KEY_PREFIX}-petra:last_address`, res.address);
+        localStorage.setItem(`${APP_KEY_PREFIX}-walletKind`, 'external');
+        localStorage.setItem(`${APP_KEY_PREFIX}-externalProviderId`, 'petra');
+      } catch {}
     }
   } catch (e: any) {
     logPetra({ phase: 'resumeError', error: e?.message || String(e) });
