@@ -138,6 +138,8 @@ export async function startConnect(): Promise<string> {
   try {
     sessionStorage.setItem(EPHEMERAL_SK_KEY, ephSkHex); // keep for same-context resume
     localStorage.setItem(EPHEMERAL_SK_PER_STATE + state, ephSkHex); // per-state fallback for fresh context
+    // Redundancy: also embed ephSkHex into the pending record in case per-state key write fails
+    try { localStorage.setItem(PENDING_PREFIX + state, JSON.stringify({ ...record, ephSkHex })); } catch {}
   } catch {}
 
   const data = {
@@ -270,8 +272,10 @@ export function handlePetraCallback(): void {
       }
       const ephFromSession = sessionStorage.getItem(EPHEMERAL_SK_KEY);
       const ephFromLocal = localStorage.getItem(EPHEMERAL_SK_PER_STATE + state);
-      const ephHex = ephFromSession || ephFromLocal;
+      const ephFromPending = pending && (pending as any).ephSkHex ? String((pending as any).ephSkHex) : null;
+      const ephHex = ephFromSession || ephFromLocal || ephFromPending;
       if (!ephHex) {
+        logPetra({ phase: 'callback.noEph', state, haveSession: !!ephFromSession, haveLocal: !!ephFromLocal, havePending: !!ephFromPending });
         finish({ ok: false, state, action, error: 'Missing ephemeral secret key' });
         return;
       }
@@ -283,6 +287,7 @@ export function handlePetraCallback(): void {
         try {
           sessionStorage.removeItem(EPHEMERAL_SK_KEY);
           localStorage.removeItem(EPHEMERAL_SK_PER_STATE + state);
+          localStorage.removeItem(PENDING_PREFIX + state);
         } catch {}
       } catch (e: any) {
         finish({ ok: false, state, action, error: 'Failed to derive shared key: ' + (e?.message || String(e)) });
