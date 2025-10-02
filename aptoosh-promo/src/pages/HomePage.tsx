@@ -62,7 +62,7 @@ export default function App() {
         const pathSeed = params.seed as string | undefined;
         const searchParams = new URLSearchParams(location.search);
         const querySeed = searchParams.get('seed') || undefined;
-        const seedParam = pathSeed || querySeed || "dH2jCyP7T96nWpfZSvoGeQ"; // default sample seed
+        const seedParam = pathSeed || querySeed || "Lr_bx92gSbCqEzaMWgZGag"; // default sample seed
 
         setCatalogueSeed(seedParam);
 

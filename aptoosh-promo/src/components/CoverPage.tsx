@@ -15,7 +15,7 @@ export default function CoverPage({ shopWallet }: CoverPageProps) {
     <Card className="h-full flex items-center justify-center bg-gradient-to-br from-white to-neutral-200 text-neutral-900 shadow-2xl border-neutral-100">
       <CardContent className="w-full h-full flex flex-col items-center justify-center text-center px-12 space-y-6">
         <img src="/logo-t-g-128x128.png" alt="Aptoosh logo" className="w-20 h-20 mb-2"/>
-        <h1 className="text-5xl font-bold tracking-tight drop-shadow-sm mb-3 text-slate-900">Aptoosh </h1>
+        <h1 className="text-5xl font-bold tracking-tight drop-shadow-sm mb-3 text-slate-900">Aptoosh</h1>
         <p className="text-base sm:text-2xl max-w-md text-fuchsia-700 font-medium">
           Scan. Shop. Pay in a flash.
         </p>

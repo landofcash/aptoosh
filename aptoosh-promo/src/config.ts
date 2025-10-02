@@ -7,7 +7,7 @@ export const BASE_URL='https://aptoosh.com'
 
 // Sign prefix for encryption seed generation
 export const signPrefix = "aptoosh-";
-export const APP_KEY_PREFIX = 'Aptoosh';
+export const APP_KEY_PREFIX = 'AptooshPromo';
 const APTOS_EXPLORER_BASE = 'https://explorer.aptoslabs.com';
 
 export const CIRCLE_APP_ID: string = 'a8986a00-6cbf-51f9-82ca-9945055526f6';
