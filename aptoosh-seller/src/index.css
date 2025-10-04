@@ -122,17 +122,6 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* Pera Wallet Modal Background Pattern */
-.pera-modal-background-pattern {
-  width: 100%;
-  background-image: url("/modal-background.png");
-  background-color: #fcca44;
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  height: 160px;
-  border-radius: 12px 12px 0 0;
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
