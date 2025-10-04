@@ -63,7 +63,8 @@ export const petraWalletAdapter: WalletAdapter = {
     }
     // Deep-link mode: return current app network
     try {
-      return (getCurrentConfig().name as NetworkId) || (localStorage.getItem(`${APP_KEY_PREFIX}-network`) as NetworkId) || 'testnet';
+      return (getCurrentConfig().name as NetworkId)
+        || (localStorage.getItem(`${APP_KEY_PREFIX}-network`) as NetworkId) || 'testnet';
     } catch {
       return 'testnet';
     }

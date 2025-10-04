@@ -134,6 +134,14 @@ export function WalletProvider({children}: { children: ReactNode }) {
             ...adapters
           ].filter(Boolean) as WalletAdapter[] : []
 
+          // Debug log: what we will try and what last address exists
+          try {
+            const lastAddr = localStorage.getItem(`${APP_KEY_PREFIX}-petra:last_address`)
+            console.debug('WalletContext.reconnect', {
+              preferredKind, externalProviderId, candidates: candidates.map(c => c.id), lastAddr
+            })
+          } catch {}
+
           for (const a of candidates) {
             try {
               const addr = await a.connect({ silent: true })
