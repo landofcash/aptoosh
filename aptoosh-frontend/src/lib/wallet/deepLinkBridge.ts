@@ -159,7 +159,7 @@ export async function startConnect(): Promise<string> {
   };
   const dataB64 = base64EncodeUtf8Json(data);
   logPetra({phase: 'startConnect', state, data});
-  window.location.href = buildConnectLink(dataB64);
+  window.location.replace(buildConnectLink(dataB64));
   const res = await awaitResult(state);
   if (!res.ok || !res.address) throw new Error(res.error || 'Connect failed');
   return res.address;
@@ -189,7 +189,7 @@ export async function startSignMessage(message: string): Promise<string> {
   };
   const dataB64 = base64EncodeUtf8Json(data);
   logPetra({phase: 'startSignMessage', state, data: {...data, payload: '[hex]', nonce: '[hex]'}});
-  window.location.href = buildSignMessageLink(dataB64);
+  window.location.replace(buildSignMessageLink(dataB64));
   const res = await awaitResult(state);
   if (!res.ok || !res.signature) throw new Error(res.error || 'Sign message failed');
   return res.signature;
@@ -225,7 +225,7 @@ export async function startSignAndSubmit(payload: EntryFunctionPayload): Promise
   };
   const dataB64 = base64EncodeUtf8Json(data);
   logPetra({phase: 'startSignAndSubmit', state, data: {...data, payload: '[hex]', nonce: '[hex]'}});
-  window.location.href = buildSignAndSubmitLink(dataB64);
+  window.location.replace(buildSignAndSubmitLink(dataB64));
   const res = await awaitResult(state);
   if (!res.ok || !res.hash) throw new Error(res.error || 'Transaction failed');
   return res.hash;
