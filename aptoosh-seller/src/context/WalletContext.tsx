@@ -1,5 +1,5 @@
 import {createContext, useContext, useState, useCallback, type ReactNode, useEffect, useMemo} from 'react'
-import {APP_KEY_PREFIX, getCurrentConfig} from '@/config'
+import {APP_KEY_PREFIX, getCurrentConfig, getAvailableNetworkIds} from '@/config'
 import {getActiveInternalWallet, loadAllInternalWallets, setActiveInternalWallet} from "@/lib/crypto/internalWallet.ts"
 import {setChainAdapter} from '@/lib/crypto/cryptoUtils.ts'
 import {aptosAdapter} from '@/lib/crypto/providers/aptosAdapter.ts'
@@ -7,6 +7,7 @@ import type {ChainId, NetworkId, WalletKind, WalletAdapter} from './wallet/types
 import {petraWalletAdapter} from './wallet/adapters/petraWalletAdapter.ts'
 import {pontemWalletAdapter} from './wallet/adapters/pontemWalletAdapter'
 import {internalWalletAdapter} from './wallet/adapters/internalWalletAdapter'
+import { toast } from 'sonner'
 
 function createAdaptersForChain(chain: ChainId): WalletAdapter[] {
   if (chain !== 'aptos') return []
@@ -162,25 +163,34 @@ export function WalletProvider({children}: { children: ReactNode }) {
     void attemptReconnect()
   }, [chain, adapters, externalProviderId])
 
+  const switchNetwork = useCallback((newNetwork: NetworkId) => {
+    if (network === newNetwork) return;
+
+    const supported = new Set(getAvailableNetworkIds());
+    if (!supported.has(newNetwork)) {
+      toast.error(`Network “${newNetwork}” is not supported by this app.`)
+      return;
+    }
+    setNetwork(newNetwork);
+    localStorage.setItem(`${APP_KEY_PREFIX}-network`, newNetwork);
+  }, [network])
+
   // Subscribe to account/network changes of active adapter
   useEffect(() => {
     if (!activeAdapter || walletKind !== 'external') return
-
     const offAcc = activeAdapter.onAccountChange?.((addr) => {
       setWalletAddress(addr)
     })
     const offNet = activeAdapter.onNetworkChange?.((n) => {
       if (n) {
-        setNetwork(n)
-        localStorage.setItem(`${APP_KEY_PREFIX}-network`, n)
+        switchNetwork(n)
       }
     })
-
     return () => {
       offAcc?.()
       offNet?.()
     }
-  }, [activeAdapter, walletKind])
+  }, [activeAdapter, walletKind, switchNetwork])
 
   const connect = useCallback(async (opts?: {
     kind?: WalletKind;
@@ -241,12 +251,7 @@ export function WalletProvider({children}: { children: ReactNode }) {
     }
   }, [walletKind, activeAdapter])
 
-  const switchNetwork = useCallback((newNetwork: NetworkId) => {
-    if (network !== newNetwork) {
-      setNetwork(newNetwork)
-      localStorage.setItem(`${APP_KEY_PREFIX}-network`, newNetwork)
-    }
-  }, [network])
+
 
   const setExternalProviderId = useCallback((id: string | null) => {
     setExternalProviderIdState(id)

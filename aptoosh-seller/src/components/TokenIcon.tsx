@@ -27,8 +27,9 @@ const TokenIcon: React.FC<TokenIconProps> = ({assetId, size = 20, alt = '', clas
       </span>
     );
   }
-  // Use token.id for fallback icon filename to support coinType-based lookups
-  const [imgSrc] = React.useState(token.img ?? `/tokens/${token.id}-icon.png`);
+  // Prefer a known APT icon for the primary Aptos coin (id 0), else use token.img, else a fallback in /tokens
+  const preferredSrc = token.id === 0 || token.name?.toUpperCase() === 'APT' ? '/aptos-logo.svg' : undefined;
+  const [imgSrc] = React.useState<string | undefined>(preferredSrc ?? token.img ?? `/tokens/${token.id}-icon.png`);
   const [showFallback, setShowFallback] = React.useState(false);
 
   const handleError = () => {

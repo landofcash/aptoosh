@@ -15,7 +15,7 @@ export interface ChainAdapter {
 
   signMessageInternal(internal: InternalAccount, message: string): Promise<Uint8Array>;
 
-  // Application-specific hooks (keep parameters generic for swappable chains)
+
   /**
    * Uploads a product catalogue URL to the blockchain
    * @param walletAdapter
@@ -94,4 +94,15 @@ export interface ChainAdapter {
   viewBuyerData(seed: string): Promise<GetStorageResult>
 
   viewSellerData(seed: string): Promise<GetStorageResult>
+
+  // Wallet balances and faucet helpers
+  getAccountCoinAmount(address: string, coinType: string): Promise<bigint>
+
+  formatCoinAmount(
+    amount: bigint | number,
+    decimals: number,
+    maximumFractionDigits?: number
+  ): string
+
+  requestDevnetFaucet(accountAddress: string, amountOctas: number): Promise<void>
 }

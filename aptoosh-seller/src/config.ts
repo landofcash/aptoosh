@@ -43,26 +43,6 @@ export interface NetworkConfig {
 }
 
 const configs: Record<NetworkId, NetworkConfig> = {
-  mainnet: {
-    name: 'mainnet',
-    account: '0x84171af48f266ba207890b75e78b503336c1cef911f693d65eb770da000f971f',
-    apiUrl: 'https://sync.aptoosh.com/api/m',
-    fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
-    cdnBasePath: 'https://aptoosh.b-cdn.net',
-    aptos: {
-      nodeUrl: 'https://fullnode.mainnet.aptoslabs.com/v1',
-      indexerGraphqlUrl: 'https://indexer.mainnet.aptoslabs.com/v1/graphql',
-      indexerRestUrl: 'https://indexer-mainnet.staging.gcp.aptosdev.com/v1',
-    },
-    explorerBaseUrl: APTOS_EXPLORER_BASE,
-    approvedShopWallets: [],
-    supportedTokens: [
-      { id: 0, name: 'APT', decimals: 8, img:null, coinType: '0x1::aptos_coin::AptosCoin' },
-    ],
-    defaultGasUnitPrice: 100,
-    maxGasAmount: 200_000,
-  },
-
   testnet: {
     name: 'testnet',
     account: '0x56397d22cd1f3ee037d59677e61ea72c6a11d73777705df4cd489a4dea83244d',
@@ -73,7 +53,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
       nodeUrl: 'https://fullnode.testnet.aptoslabs.com/v1',
       indexerGraphqlUrl: 'https://indexer.testnet.aptoslabs.com/v1/graphql',
       indexerRestUrl: 'https://indexer-testnet.staging.gcp.aptosdev.com/v1',
-      faucetUrl: 'https://faucet.testnet.aptoslabs.com',
+      faucetUrl: 'https://aptos.dev/network/faucet',
     },
     explorerBaseUrl: APTOS_EXPLORER_BASE,
     approvedShopWallets: [
@@ -107,11 +87,21 @@ const configs: Record<NetworkId, NetworkConfig> = {
   }
 };
 
-export const getConfig = (network: NetworkId): NetworkConfig => configs[network];
+export const getConfig = (network: NetworkId): NetworkConfig => {
+  const cfg = (configs as Record<string, NetworkConfig>)[network];
+  if (!cfg) {
+    throw new Error(`Unsupported network: ${network}`);
+  }
+  return cfg;
+};
+
+// Returns all available network IDs from the configuration
+export const getAvailableNetworkIds = (): NetworkId[] => Object.keys(configs) as NetworkId[];
 
 export const getCurrentConfig = (): NetworkConfig => {
   const raw = (localStorage.getItem(`${APP_KEY_PREFIX}-network`) as NetworkId) || 'testnet';
-  const network: NetworkId = ['mainnet', 'testnet', 'devnet'].includes(raw) ? raw : 'testnet';
+  const available = getAvailableNetworkIds();
+  const network: NetworkId = available.includes(raw) ? raw : (available[0] ?? 'testnet');
   return getConfig(network);
 };
 

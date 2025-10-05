@@ -148,9 +148,7 @@ const TryTestnetModal: React.FC<TryTestnetModalProps> = ({ open, onClose }) => {
     if (network !== 'testnet') await switchNetwork('testnet')
   }
 
-  const faucetUrl = 'https://faucet.testnet.aptoslabs.com/'
-
-  return (
+ return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
         className="relative w-full max-w-2xl mx-4 bg-card border rounded-2xl shadow-lg max-h-[75vh] flex flex-col overflow-hidden"
@@ -235,7 +233,7 @@ const TryTestnetModal: React.FC<TryTestnetModalProps> = ({ open, onClose }) => {
           {newCreatedAddr && (
             <div className="mt-3 flex flex-col sm:flex-row gap-2">
               <a
-                href={faucetUrl}
+                href='https://aptos.dev/network/faucet'
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 text-sm"

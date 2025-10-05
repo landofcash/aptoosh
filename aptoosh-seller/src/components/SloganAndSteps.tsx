@@ -14,10 +14,10 @@ const SloganAndSteps: React.FC<SloganAndStepsProps> = ({setShowInstallModal, set
         <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight drop-shadow-sm">
           {APP_NAME}
         </h1>
-        <p
+        <div
           className="mt-2leading-relaxed text-slate-700 dark:text-emerald-200/90 max-w-3xl mx-auto font-normal">
           <HyperText className=" text-base sm:text-2xl ">Turn your products into instant, scannable checkouts.</HyperText>
-        </p>
+        </div>
         <p
           className="text-base sm:text-1xl leading-relaxed text-slate-700 dark:text-emerald-200/90 max-w-3xl mx-auto font-normal">
           No terminals, no subscriptions, no middlemen. </p>

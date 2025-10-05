@@ -35,3 +35,15 @@ export function accountToMnemonic(internalAccount: InternalAccount): string {
 export function mapNetworkName(name: string): NetworkId {
   return adapter.mapNetworkName(name);
 }
+
+export async function getAccountCoinAmount(address: string, coinType: string): Promise<bigint> {
+  return await adapter.getAccountCoinAmount(address, coinType);
+}
+
+export function formatCoinAmount(amount: bigint | number, decimals: number, maximumFractionDigits = 4): string {
+  return adapter.formatCoinAmount(amount, decimals, maximumFractionDigits);
+}
+
+export async function requestDevnetFaucet(accountAddress: string, amountOctas: number): Promise<void> {
+  return await adapter.requestDevnetFaucet(accountAddress, amountOctas);
+}
