@@ -20,26 +20,23 @@ import pontemLogo from "@/assets/pontem-logo.svg";
 import genericWalletLogo from "@/assets/wallet.svg";
 
 // Simple network switcher for Aptos
-type NetworkId = "mainnet" | "testnet" | "devnet";
-const networks: Array<{ id: NetworkId; label: string }> = [
-  { id: "devnet", label: "DEVNET" },
-  { id: "testnet", label: "TESTNET" },
-  { id: "mainnet", label: "MAINNET" },
-];
+import { getAvailableNetworkIds } from "@/config";
+import type { NetworkId } from "@/context/wallet/types";
 
 function NetworkSwitcher({ current, onSwitch }: { current: string; onSwitch: (n: NetworkId) => void }) {
+  const networks = getAvailableNetworkIds();
   return (
     <div className="space-y-2">
       {networks
-        .filter((n) => n.id !== (current as NetworkId))
-        .map((n) => (
+        .filter((id) => id !== (current as NetworkId))
+        .map((id) => (
           <Button
-            key={n.id}
-            onClick={() => onSwitch(n.id)}
+            key={id}
+            onClick={() => onSwitch(id)}
             className="w-full justify-start text-sm bg-gray-500 hover:bg-gray-600 text-white cursor-pointer"
           >
             <RefreshCcw className="w-4 h-4 mr-2" />
-            Switch to {n.label}
+            Switch to {id.toUpperCase()}
           </Button>
         ))}
       <div className="text-muted-foreground text-xs text-right">[{current}]</div>
@@ -275,7 +272,7 @@ const WalletAuth: React.FC = () => {
       >
         <WalletIcon className="w-4 h-4" />
         <span>
-          {truncateString(walletAddress)}
+          {truncateString(walletAddress, 25)}
         </span>
       </Button>
 

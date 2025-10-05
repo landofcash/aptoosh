@@ -51,7 +51,7 @@ export function WalletProvider({children}: { children: ReactNode }) {
     return (localStorage.getItem(`${APP_KEY_PREFIX}-walletKind`) as WalletKind | null) ?? null
   })
   const [chain, setChain] = useState<ChainId>(() => (localStorage.getItem(`${APP_KEY_PREFIX}-chain`) as ChainId) || 'aptos')
-  const [network, setNetwork] = useState<NetworkId>(() => (getCurrentConfig().name as NetworkId)  || (localStorage.getItem(`${APP_KEY_PREFIX}-network`) as NetworkId) || 'testnet')
+  const [network, setNetwork] = useState<NetworkId>(() => (getCurrentConfig().name as NetworkId) || 'testnet')
   const [externalProviderId, setExternalProviderIdState] = useState<string | null>(() => localStorage.getItem(`${APP_KEY_PREFIX}-externalProviderId`))
   const [internalAddresses, setInternalAddresses] = useState<string[]>([])
 

@@ -3,9 +3,13 @@ import {Button} from '@/components/ui/button'
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 import {Link} from 'react-router-dom'
 import {useWallet} from '@/context/WalletContext'
+import {getAvailableNetworkIds} from '@/config'
 
 function SettingsPage() {
   const {network, switchNetwork} = useWallet()
+  const availableNetworks = getAvailableNetworkIds()
+
+  const labelFor = (id: string) => id.charAt(0).toUpperCase() + id.slice(1)
 
   return (
     <div className="min-h-screen bg-background flex items-start justify-center px-4 py-8 sm:py-16">
@@ -25,18 +29,14 @@ function SettingsPage() {
               Aptoosh Network
             </div>
             <div className="flex gap-2 flex-wrap">
-              <Button variant={network === 'mainnet' ? 'default' : 'outline'} onClick={() => switchNetwork('mainnet')}
-                      size="sm">
-                Mainnet
-              </Button>
-              <Button variant={network === 'testnet' ? 'default' : 'outline'} onClick={() => switchNetwork('testnet')}
-                      size="sm">
-                Testnet
-              </Button>
-              <Button variant={network === 'devnet' ? 'default' : 'outline'} onClick={() => switchNetwork('devnet')}
-                      size="sm">
-                Devnet
-              </Button>
+              {availableNetworks.map((id) => (
+                <Button key={id}
+                        variant={network === id ? 'default' : 'outline'}
+                        onClick={() => switchNetwork(id)}
+                        size="sm">
+                  {labelFor(id)}
+                </Button>
+              ))}
             </div>
           </div>
 

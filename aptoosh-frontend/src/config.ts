@@ -110,7 +110,8 @@ export const getAvailableNetworkIds = (): NetworkId[] => Object.keys(configs) as
 
 export const getCurrentConfig = (): NetworkConfig => {
   const raw = (localStorage.getItem(`${APP_KEY_PREFIX}-network`) as NetworkId) || 'testnet';
-  const network: NetworkId = ['mainnet', 'testnet', 'devnet'].includes(raw) ? raw : 'testnet';
+  const available = getAvailableNetworkIds();
+  const network: NetworkId = available.includes(raw) ? raw : (available[0] ?? 'testnet');
   return getConfig(network);
 };
 

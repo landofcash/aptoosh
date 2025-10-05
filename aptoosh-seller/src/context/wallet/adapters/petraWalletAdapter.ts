@@ -12,12 +12,8 @@ function provider(): PetraWalletProvider | null {
 }
 
 function hasInjectedPetra(): boolean {
-  try {
-    const p = window?.aptos;
-    return !!(p);
-  } catch {
-    return false;
-  }
+  const p = window?.aptos;
+  return !!(p);
 }
 
 export const petraWalletAdapter: WalletAdapter = {
