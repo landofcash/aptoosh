@@ -12,6 +12,7 @@ import {
   hexToBytes,
   deriveSharedSecretAfter
 } from './petraCrypto';
+import {log as appLog} from '@/lib/logger';
 
 const RESULT_PREFIX = `${APP_KEY_PREFIX}-petra:result:`;
 const PENDING_PREFIX = `${APP_KEY_PREFIX}-petra:pending:`;
@@ -19,11 +20,13 @@ const EPHEMERAL_SK_KEY = `${APP_KEY_PREFIX}-petra:ephemeralSecretKey`;
 const SHARED_SECRET_KEY = `${APP_KEY_PREFIX}-petra:sharedEncryptionSecretKey`;
 const EPHEMERAL_SK_PER_STATE = `${APP_KEY_PREFIX}-petra:eph:`; // + state
 const LAST_PENDING_STATE_KEY = `${APP_KEY_PREFIX}-petra:lastPendingState`;
+const DAPP_PUBKEY_KEY = `${APP_KEY_PREFIX}-petra:dappEncryptionPublicKey`;
 
 // Logging: funnel to reusable app logger as plain string for the 'petra' category
 function logPetra(entry:unknown) {
   const msg = typeof entry === 'string' ? entry : JSON.stringify(entry);
   console.log('petra', msg);
+  appLog('petra', msg);
 }
 
 function uuid(): string {
@@ -134,14 +137,16 @@ export async function startConnect(): Promise<string> {
   // Generate ephemeral NaCl box keypair and store secret for callback
   const kp = generateEphemeralBoxKeyPair();
   const ephSkHex = bytesToHex(kp.secretKey);
+  const ephPkHex = bytesToHex(kp.publicKey);
   sessionStorage.setItem(EPHEMERAL_SK_KEY, ephSkHex); // keep for same-context resume
   localStorage.setItem(EPHEMERAL_SK_PER_STATE + state, ephSkHex); // per-state fallback for fresh context
   localStorage.setItem(PENDING_PREFIX + state, JSON.stringify({...record, ephSkHex}));
+  localStorage.setItem(DAPP_PUBKEY_KEY, ephPkHex);
 
   const data = {
     appInfo: {domain: currentOrigin(), name: APP_NAME},
     redirectLink: buildRedirectLink('connect', state),
-    dappEncryptionPublicKey: bytesToHex(kp.publicKey),
+    dappEncryptionPublicKey: ephPkHex,
   };
   const dataB64 = base64EncodeUtf8Json(data);
   logPetra({phase: 'startConnect', state, data});
@@ -161,6 +166,10 @@ export async function startSignMessage(message: string): Promise<string> {
   const sharedHex = sessionStorage.getItem(SHARED_SECRET_KEY) || localStorage.getItem(SHARED_SECRET_KEY);
   if (!sharedHex) throw new Error('Petra not connected: missing shared encryption key');
 
+  // Fetch persisted dApp public key from connect
+  const dappPubHex = localStorage.getItem(DAPP_PUBKEY_KEY);
+  if (!dappPubHex) throw new Error('Petra not connected: missing dappEncryptionPublicKey');
+
   const nonce = randomNonce24();
   const cipher = encryptAfter(utf8ToBytes(message), nonce, hexToBytes(sharedHex));
 
@@ -168,6 +177,7 @@ export async function startSignMessage(message: string): Promise<string> {
     appInfo: {domain: currentOrigin(), name: APP_NAME},
     redirectLink: buildRedirectLink('signMessage', state),
     payload: bytesToHex(cipher),
+    dappEncryptionPublicKey: dappPubHex,
     nonce: bytesToHex(nonce),
   };
   const dataB64 = base64EncodeUtf8Json(data);
@@ -188,6 +198,10 @@ export async function startSignAndSubmit(payload: EntryFunctionPayload): Promise
   const sharedHex = sessionStorage.getItem(SHARED_SECRET_KEY) || localStorage.getItem(SHARED_SECRET_KEY);
   if (!sharedHex) throw new Error('Petra not connected: missing shared encryption key');
 
+  // Fetch persisted dApp public key from connect
+  const dappPubHex = localStorage.getItem(DAPP_PUBKEY_KEY);
+  if (!dappPubHex) throw new Error('Petra not connected: missing dappEncryptionPublicKey');
+
   const payloadJson = JSON.stringify({
     type: 'entry_function_payload',
     function: payload.function,
@@ -201,6 +215,7 @@ export async function startSignAndSubmit(payload: EntryFunctionPayload): Promise
     appInfo: {domain: currentOrigin(), name: APP_NAME},
     redirectLink: buildRedirectLink('signAndSubmit', state),
     payload: bytesToHex(cipher),
+    dappEncryptionPublicKey: dappPubHex,
     nonce: bytesToHex(nonce),
   };
   const dataB64 = base64EncodeUtf8Json(data);
