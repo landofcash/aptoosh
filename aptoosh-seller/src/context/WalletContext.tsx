@@ -26,7 +26,7 @@ export interface WalletContextType {
   chain: ChainId
   walletKind: WalletKind | null
 
-  // Which external provider is selected (e.g., 'petra', 'walletconnect')
+  // Which external provider is selected (e.g., 'petra')
   externalProviderId: string | null
   availableExternalProviders: { id: string; name: string; installed: boolean }[]
 
@@ -48,7 +48,9 @@ const WalletContext = createContext<WalletContextType | null>(null)
 
 export function WalletProvider({children}: { children: ReactNode }) {
   const [walletAddress, setWalletAddress] = useState<string | null>(null)
-  const [walletKind, setWalletKind] = useState<WalletKind | null>(null)
+  const [walletKind, setWalletKind] = useState<WalletKind | null>(() => {
+    return (localStorage.getItem(`${APP_KEY_PREFIX}-walletKind`) as WalletKind | null) ?? null
+  })
   const [chain, setChain] = useState<ChainId>(() => (localStorage.getItem(`${APP_KEY_PREFIX}-chain`) as ChainId) || 'aptos')
   const [network, setNetwork] = useState<NetworkId>(() => (getCurrentConfig().name as NetworkId)  || (localStorage.getItem(`${APP_KEY_PREFIX}-network`) as NetworkId) || 'testnet')
   const [externalProviderId, setExternalProviderIdState] = useState<string | null>(() => localStorage.getItem(`${APP_KEY_PREFIX}-externalProviderId`))
@@ -59,16 +61,18 @@ export function WalletProvider({children}: { children: ReactNode }) {
     if (chain === 'aptos') setChainAdapter(aptosAdapter)
   }, [chain])
 
-  // Persist walletKind
+  // Persist walletKind (only write when non-null; don't remove on null to keep last known for reload)
   useEffect(() => {
-    if (walletKind) localStorage.setItem(`${APP_KEY_PREFIX}-walletKind`, walletKind)
-    else localStorage.removeItem(`${APP_KEY_PREFIX}-walletKind`)
+    if (walletKind) {
+      localStorage.setItem(`${APP_KEY_PREFIX}-walletKind`, walletKind)
+    }
   }, [walletKind])
 
-  // Persist external provider id
+  // Persist external provider id (only write when non-null; don't remove on null to keep last known for reload)
   useEffect(() => {
-    if (externalProviderId) localStorage.setItem(`${APP_KEY_PREFIX}-externalProviderId`, externalProviderId)
-    else localStorage.removeItem(`${APP_KEY_PREFIX}-externalProviderId`)
+    if (externalProviderId) {
+      localStorage.setItem(`${APP_KEY_PREFIX}-externalProviderId`, externalProviderId)
+    }
   }, [externalProviderId])
 
   const adapters = useMemo(() => walletAdapters[chain] ?? [], [chain])
@@ -137,6 +141,16 @@ export function WalletProvider({children}: { children: ReactNode }) {
 
           for (const a of candidates) {
             try {
+              // 1) Try to read an address without initiating a connect prompt
+              const addrFromProvider = await a.getAddress?.()
+              if (addrFromProvider) {
+                setWalletAddress(addrFromProvider)
+                setWalletKind('external')
+                setExternalProviderIdState(a.id)
+                return
+              }
+
+              // 2) Fallback to truly silent connect (onlyIfTrusted for Petra)
               const addr = await a.connect({ silent: true })
               if (addr) {
                 setWalletAddress(addr)
@@ -186,6 +200,7 @@ export function WalletProvider({children}: { children: ReactNode }) {
         switchNetwork(n)
       }
     })
+
     return () => {
       offAcc?.()
       offNet?.()
@@ -246,6 +261,9 @@ export function WalletProvider({children}: { children: ReactNode }) {
 
       setWalletAddress(null)
       setWalletKind(null)
+      // Explicitly clear persisted selections only on user-driven disconnect
+      localStorage.removeItem(`${APP_KEY_PREFIX}-walletKind`)
+      localStorage.removeItem(`${APP_KEY_PREFIX}-externalProviderId`)
     } catch (error) {
       console.error('Failed to disconnect wallet:', error)
     }

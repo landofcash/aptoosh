@@ -9,7 +9,7 @@ export function hexToBytes(hex: string): Uint8Array {
   const clean = hex.startsWith('0x') ? hex.slice(2) : hex;
   if (clean.length % 2 !== 0) throw new Error('Invalid hex string');
   const out = new Uint8Array(clean.length / 2);
-  for (let i = 0; i < out.length; i++) out[i] = parseInt(clean.substr(i * 2, 2), 16);
+  for (let i = 0; i < out.length; i++) out[i] = parseInt(clean.slice(i * 2, i * 2 + 2), 16);
   return out;
 }
 
@@ -55,8 +55,7 @@ export function deriveSharedSecretAfter(petraPublicKeyHex: string, dappSecretKey
 }
 
 export function encryptAfter(plainBytes: Uint8Array, nonce: Uint8Array, sharedSecret: Uint8Array): Uint8Array {
-  const ct = nacl.box.after(plainBytes, nonce, sharedSecret);
-  return ct;
+  return nacl.box.after(plainBytes, nonce, sharedSecret);
 }
 
 export function decryptAfter(cipherBytes: Uint8Array, nonce: Uint8Array, sharedSecret: Uint8Array): Uint8Array | null {

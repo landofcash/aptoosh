@@ -74,20 +74,7 @@ export interface ChainAdapter {
     payloadEncrypted: string
   ): Promise<string>
 
-  /**
-   * Resolves an address to name (Aptos Name Service (ANS), ENS on Ethereum or NFD on Algorand.)
-   * @param address The address to resolve
-   * @returns The address or null if not found
-   */
-  resolveAddressToName(address: string): Promise<string | null>
-  /**
-   * Resolves a name to address (Aptos Name Service (ANS), ENS on Ethereum or NFD on Algorand.)
-   * @param name The name to resolve
-   * @returns The name or null if not found
-   */
-  resolveNameToAddress(name: string): Promise<string | null>
 
-  mapNetworkName(name?: string): NetworkId
 
   viewProductOnBlockchain(seed: string): Promise<ProductData>
 
@@ -95,7 +82,38 @@ export interface ChainAdapter {
 
   viewSellerData(seed: string): Promise<GetStorageResult>
 
-  // Wallet balances and faucet helpers
+  /**
+   * Resolves an address to name (Aptos Name Service (ANS), ENS on Ethereum or NFD on Algorand.)
+   * @param address The address to resolve
+   * @returns The address or null if not found
+
+
+
+
+
+   */
+  resolveAddressToName(address: string): Promise<string | null>
+
+
+
+
+
+
+
+
+  /**
+   * Resolves a name to address (Aptos Name Service (ANS), ENS on Ethereum or NFD on Algorand.)
+   * @param name The name to resolve
+   * @returns The name or null if not found
+
+
+
+   */
+  resolveNameToAddress(name: string): Promise<string | null>
+
+  mapNetworkName(name ?: string): NetworkId
+
+ // Wallet balances and faucet helpers
   getAccountCoinAmount(address: string, coinType: string): Promise<bigint>
 
   formatCoinAmount(

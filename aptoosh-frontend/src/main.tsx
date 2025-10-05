@@ -19,9 +19,6 @@ import Layout from './components/Layout.tsx'
 import UrlParserAndRedirector from './components/UrlParserAndRedirector.tsx'
 import {OrderProvider} from './context/OrderContext.tsx'
 import CallbackPage from './pages/wallet/petra/CallbackPage.tsx'
-import { resumePendingDeepLinkIfAny } from '@/lib/wallet/deepLinkBridge'
-
-resumePendingDeepLinkIfAny()
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>

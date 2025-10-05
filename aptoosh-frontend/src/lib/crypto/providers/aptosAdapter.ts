@@ -54,6 +54,20 @@ export const aptosAdapter: ChainAdapter = {
   accountToMnemonic: aptosUtils.accountToMnemonicAptos,
   signMessageInternal: aptosUtils.signMessageAptos,
 
+  // Wallet balances and faucet API used by UI
+  async getAccountCoinAmount(address: string, coinType: string): Promise<bigint> {
+    const amt = await aptosUtils.getAccountCoinAmount(address, coinType);
+    return typeof amt === "bigint" ? amt : BigInt(amt);
+  },
+
+  formatCoinAmount(amount: bigint | number, decimals: number, maximumFractionDigits = 4): string {
+    return aptosUtils.formatCoinAmount(amount, decimals, maximumFractionDigits);
+  },
+
+  async requestDevnetFaucet(accountAddress: string, amountOctas: number): Promise<void> {
+    return aptosUtils.requestDevnetFaucet(accountAddress, amountOctas);
+  },
+
   async uploadCatalogueUrlToBlockchain(
     walletAdapter: WalletAdapter,
     seed: string,

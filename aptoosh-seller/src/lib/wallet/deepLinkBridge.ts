@@ -10,12 +10,21 @@ import {
   encryptAfter,
   generateEphemeralBoxKeyPair,
   hexToBytes,
-  deriveSharedSecretAfter} from './petraCrypto';
+  deriveSharedSecretAfter
+} from './petraCrypto';
 
 const RESULT_PREFIX = `${APP_KEY_PREFIX}-petra:result:`;
 const PENDING_PREFIX = `${APP_KEY_PREFIX}-petra:pending:`;
 const EPHEMERAL_SK_KEY = `${APP_KEY_PREFIX}-petra:ephemeralSecretKey`;
 const SHARED_SECRET_KEY = `${APP_KEY_PREFIX}-petra:sharedEncryptionSecretKey`;
+const EPHEMERAL_SK_PER_STATE = `${APP_KEY_PREFIX}-petra:eph:`; // + state
+const LAST_PENDING_STATE_KEY = `${APP_KEY_PREFIX}-petra:lastPendingState`;
+
+// Logging: funnel to reusable app logger as plain string for the 'petra' category
+function logPetra(entry:unknown) {
+  const msg = typeof entry === 'string' ? entry : JSON.stringify(entry);
+  console.log('petra', msg);
+}
 
 function uuid(): string {
   const a = new Uint8Array(16);
@@ -24,7 +33,7 @@ function uuid(): string {
   a[6] = (a[6] & 0x0f) | 0x40;
   a[8] = (a[8] & 0x3f) | 0x80;
   const seg = (i: number, l: number) => Array.from(a.slice(i, i + l)).map(b => b.toString(16).padStart(2, '0')).join('');
-  return `${seg(0,4)}-${seg(4,2)}-${seg(6,2)}-${seg(8,2)}-${seg(10,6)}`;
+  return `${seg(0, 4)}-${seg(4, 2)}-${seg(6, 2)}-${seg(8, 2)}-${seg(10, 6)}`;
 }
 
 function currentOrigin(): string {
@@ -49,22 +58,6 @@ export interface DeepLinkResult {
   error?: string;
 }
 
-// Session-stored pending deep link info
-export type PendingRecord =
-  | { action: 'connect'; createdAt: number; origin: string }
-  | { action: 'signMessage'; createdAt: number; origin: string; message: string }
-  | { action: 'signAndSubmit'; createdAt: number; origin: string; payload: EntryFunctionPayload };
-
-// Data returned by Petra deep link callback (base64-encoded JSON in `data` param)
-export interface PetraCallbackData {
-  petraPublicEncryptedKey?: string;
-  petraPublicKey?: string;
-  petra_pubkey?: string;
-  address?: string;
-  signature?: string;
-  hash?: string;
-}
-
 export function getRedirectUri(): string {
   return `${currentOrigin()}/wallet/petra/callback`;
 }
@@ -73,7 +66,7 @@ function buildRedirectLink(action: DeepLinkAction, state: string): string {
   return `${getRedirectUri()}?action=${encodeURIComponent(action)}&state=${encodeURIComponent(state)}`;
 }
 
-function awaitResult(state: string, timeoutMs = 90000): Promise<DeepLinkResult> {
+function awaitResult(state: string, timeoutMs = 150000): Promise<DeepLinkResult> {
   return new Promise((resolve, reject) => {
     const key = RESULT_PREFIX + state;
 
@@ -94,9 +87,11 @@ function awaitResult(state: string, timeoutMs = 90000): Promise<DeepLinkResult> 
         const res: DeepLinkResult = JSON.parse(val);
         localStorage.removeItem(key);
         cleanup();
+        logPetra({phase: 'awaitResult.storage', state, res});
         if (res.ok) resolve(res); else reject(new Error(res.error || 'Deep link failed'));
-      } catch (e) {
+      } catch (e: unknown) {
         cleanup();
+        logPetra({phase: 'awaitResult.error', state, error: e});
         reject(e);
       }
     };
@@ -107,17 +102,19 @@ function awaitResult(state: string, timeoutMs = 90000): Promise<DeepLinkResult> 
       if (pre) {
         const res: DeepLinkResult = JSON.parse(pre);
         localStorage.removeItem(key);
+        logPetra({phase: 'awaitResult.pre', state, res});
         if (res.ok) resolve(res); else reject(new Error(res.error || 'Deep link failed'));
         return;
       }
-    } catch {
-      // Ignore
+    } catch (e: unknown) {
+      logPetra({phase: 'awaitResult.preError', state, error: e});
     }
 
     window.addEventListener('storage', onStorage);
 
     to = setTimeout(() => {
       cleanup();
+      logPetra({phase: 'awaitResult.timeout', state});
       reject(new Error('Deep link timed out'));
     }, timeoutMs);
   });
@@ -126,20 +123,29 @@ function awaitResult(state: string, timeoutMs = 90000): Promise<DeepLinkResult> 
 export async function startConnect(): Promise<string> {
   const state = uuid();
   const originPath = currentPath();
-  const record = { action: 'connect', createdAt: Date.now(), origin: originPath };
-  sessionStorage.setItem(PENDING_PREFIX + state, JSON.stringify(record));
+  const record = {action: 'connect', createdAt: Date.now(), origin: originPath};
+
+  localStorage.setItem(PENDING_PREFIX + state, JSON.stringify(record));
+  localStorage.setItem(LAST_PENDING_STATE_KEY, state);
+  // Persist intent so WalletContext attempts external reconnect after reload
+  localStorage.setItem(`${APP_KEY_PREFIX}-walletKind`, 'external');
+  localStorage.setItem(`${APP_KEY_PREFIX}-externalProviderId`, 'petra');
 
   // Generate ephemeral NaCl box keypair and store secret for callback
   const kp = generateEphemeralBoxKeyPair();
-  sessionStorage.setItem(EPHEMERAL_SK_KEY, bytesToHex(kp.secretKey));
+  const ephSkHex = bytesToHex(kp.secretKey);
+  sessionStorage.setItem(EPHEMERAL_SK_KEY, ephSkHex); // keep for same-context resume
+  localStorage.setItem(EPHEMERAL_SK_PER_STATE + state, ephSkHex); // per-state fallback for fresh context
+  localStorage.setItem(PENDING_PREFIX + state, JSON.stringify({...record, ephSkHex}));
 
   const data = {
-    appInfo: { domain: currentOrigin(), name: APP_NAME },
+    appInfo: {domain: currentOrigin(), name: APP_NAME},
     redirectLink: buildRedirectLink('connect', state),
     dappEncryptionPublicKey: bytesToHex(kp.publicKey),
   };
   const dataB64 = base64EncodeUtf8Json(data);
-  window.location.href = buildConnectLink(dataB64);
+  logPetra({phase: 'startConnect', state, data});
+  window.location.replace(buildConnectLink(dataB64));
   const res = await awaitResult(state);
   if (!res.ok || !res.address) throw new Error(res.error || 'Connect failed');
   return res.address;
@@ -148,23 +154,25 @@ export async function startConnect(): Promise<string> {
 export async function startSignMessage(message: string): Promise<string> {
   const state = uuid();
   const originPath = currentPath();
-  const record = { action: 'signMessage', createdAt: Date.now(), origin: originPath, message };
-  sessionStorage.setItem(PENDING_PREFIX + state, JSON.stringify(record));
+  const record = {action: 'signMessage', createdAt: Date.now(), origin: originPath, message};
+  localStorage.setItem(PENDING_PREFIX + state, JSON.stringify(record));
+  localStorage.setItem(LAST_PENDING_STATE_KEY, state);
 
-  const sharedHex = sessionStorage.getItem(SHARED_SECRET_KEY);
+  const sharedHex = sessionStorage.getItem(SHARED_SECRET_KEY) || localStorage.getItem(SHARED_SECRET_KEY);
   if (!sharedHex) throw new Error('Petra not connected: missing shared encryption key');
 
   const nonce = randomNonce24();
   const cipher = encryptAfter(utf8ToBytes(message), nonce, hexToBytes(sharedHex));
 
   const data = {
-    appInfo: { domain: currentOrigin(), name: APP_NAME },
+    appInfo: {domain: currentOrigin(), name: APP_NAME},
     redirectLink: buildRedirectLink('signMessage', state),
     payload: bytesToHex(cipher),
     nonce: bytesToHex(nonce),
   };
   const dataB64 = base64EncodeUtf8Json(data);
-  window.location.href = buildSignMessageLink(dataB64);
+  logPetra({phase: 'startSignMessage', state, data: {...data, payload: '[hex]', nonce: '[hex]'}});
+  window.location.replace(buildSignMessageLink(dataB64));
   const res = await awaitResult(state);
   if (!res.ok || !res.signature) throw new Error(res.error || 'Sign message failed');
   return res.signature;
@@ -173,10 +181,11 @@ export async function startSignMessage(message: string): Promise<string> {
 export async function startSignAndSubmit(payload: EntryFunctionPayload): Promise<string> {
   const state = uuid();
   const originPath = currentPath();
-  const record = { action: 'signAndSubmit', createdAt: Date.now(), origin: originPath, payload };
-  sessionStorage.setItem(PENDING_PREFIX + state, JSON.stringify(record));
+  const record = {action: 'signAndSubmit', createdAt: Date.now(), origin: originPath, payload};
+  localStorage.setItem(PENDING_PREFIX + state, JSON.stringify(record));
+  localStorage.setItem(LAST_PENDING_STATE_KEY, state);
 
-  const sharedHex = sessionStorage.getItem(SHARED_SECRET_KEY);
+  const sharedHex = sessionStorage.getItem(SHARED_SECRET_KEY) || localStorage.getItem(SHARED_SECRET_KEY);
   if (!sharedHex) throw new Error('Petra not connected: missing shared encryption key');
 
   const payloadJson = JSON.stringify({
@@ -189,22 +198,26 @@ export async function startSignAndSubmit(payload: EntryFunctionPayload): Promise
   const cipher = encryptAfter(utf8ToBytes(payloadJson), nonce, hexToBytes(sharedHex));
 
   const data = {
-    appInfo: { domain: currentOrigin(), name: APP_NAME },
+    appInfo: {domain: currentOrigin(), name: APP_NAME},
     redirectLink: buildRedirectLink('signAndSubmit', state),
     payload: bytesToHex(cipher),
     nonce: bytesToHex(nonce),
   };
   const dataB64 = base64EncodeUtf8Json(data);
-  window.location.href = buildSignAndSubmitLink(dataB64);
+  logPetra({phase: 'startSignAndSubmit', state, data: {...data, payload: '[hex]', nonce: '[hex]'}});
+  window.location.replace(buildSignAndSubmitLink(dataB64));
   const res = await awaitResult(state);
   if (!res.ok || !res.hash) throw new Error(res.error || 'Transaction failed');
   return res.hash;
 }
 
-export function readPending(state: string): PendingRecord | null {
-  const s = sessionStorage.getItem(PENDING_PREFIX + state);
+export function readPending(state: string) {
+  const key = PENDING_PREFIX + state;
+  const s = localStorage.getItem(key) ?? sessionStorage.getItem(key);
   if (!s) return null;
-  try { return JSON.parse(s) as PendingRecord; } catch {
+  try {
+    return JSON.parse(s);
+  } catch {
     return null;
   }
 }
@@ -220,10 +233,10 @@ export function handlePetraCallback(): void {
     const action: DeepLinkAction = actionParam || pending?.action || 'connect';
     const key = RESULT_PREFIX + state;
 
-    const finish = (res: DeepLinkResult, redirectToOrigin = true) => {
-      try { localStorage.setItem(key, JSON.stringify(res)); } catch {
-        // Ignore
-      }
+    const finish = (res:unknown, redirectToOrigin = true) => {
+      localStorage.setItem(key, JSON.stringify(res));
+      localStorage.setItem(LAST_PENDING_STATE_KEY, state);
+      logPetra({phase: 'callbackFinish', state, action, res});
       const originPath = pending?.origin || '/';
       if (redirectToOrigin) {
         window.location.replace(originPath);
@@ -231,70 +244,97 @@ export function handlePetraCallback(): void {
     };
 
     if (!state) {
-      finish({ ok: false, state: '', action, error: 'Missing state' });
+      finish({ok: false, state: '', action, error: 'Missing state'});
       return;
     }
 
     if (response !== 'approved') {
       const error = sp.get('error') || 'User rejected or wallet error';
-      finish({ ok: false, state, action, error });
+      finish({ok: false, state, action, error});
       return;
     }
 
     // Approved flow
     const dataB64 = sp.get('data');
-    const data: PetraCallbackData = dataB64 ? base64DecodeUtf8ToObj<PetraCallbackData>(dataB64) : {};
-
+    if (!dataB64) {
+      finish({ok: false, state, action, error: 'Missing data'});
+      return;
+    }
+    logPetra({dataB64});
+    const data = base64DecodeUtf8ToObj<{
+      petraPublicEncryptedKey:string,
+      address:string,
+      signature:string,
+      hash:string,
+    }>(dataB64);
     if (action === 'connect') {
-      const petraPubHex: string | undefined = data?.petraPublicEncryptedKey || data?.petraPublicKey || data?.petra_pubkey;
+      const petraPubHex: string | undefined = data?.petraPublicEncryptedKey;
       if (!petraPubHex) {
-        finish({ ok: false, state, action, error: 'Missing petraPublicEncryptedKey in data' });
+        finish({ok: false, state, action, error: 'Missing petraPublicEncryptedKey in data'});
         return;
       }
-      const ephHex = sessionStorage.getItem(EPHEMERAL_SK_KEY);
+      const ephFromSession = sessionStorage.getItem(EPHEMERAL_SK_KEY);
+      const ephFromLocal = localStorage.getItem(EPHEMERAL_SK_PER_STATE + state);
+      const ephFromPending = pending && pending.ephSkHex ? String(pending.ephSkHex) : null;
+      const ephHex = ephFromSession || ephFromLocal || ephFromPending;
       if (!ephHex) {
-        finish({ ok: false, state, action, error: 'Missing ephemeral secret key' });
+        logPetra({
+          phase: 'callback.noEph',
+          state,
+          haveSession: !!ephFromSession,
+          haveLocal: !!ephFromLocal,
+          havePending: !!ephFromPending
+        });
+        finish({ok: false, state, action, error: 'Missing ephemeral secret key'});
         return;
       }
       try {
         const shared = deriveSharedSecretAfter(petraPubHex, hexToBytes(ephHex));
-        sessionStorage.setItem(SHARED_SECRET_KEY, bytesToHex(shared));
+        const sharedHex = bytesToHex(shared);
+        sessionStorage.setItem(SHARED_SECRET_KEY, sharedHex);
+        localStorage.setItem(SHARED_SECRET_KEY, sharedHex);
         sessionStorage.removeItem(EPHEMERAL_SK_KEY);
+        localStorage.removeItem(EPHEMERAL_SK_PER_STATE + state);
+        localStorage.removeItem(PENDING_PREFIX + state);
+
       } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : String(e);
-        finish({ ok: false, state, action, error: 'Failed to derive shared key: ' + msg });
+        finish({ok: false, state, action, error: e});
         return;
       }
-      const address = sp.get('address') || data?.address || undefined;
-      finish({ ok: true, state, action, address });
+      const address = data?.address || undefined;
+      if (address) {
+        localStorage.setItem(`${APP_KEY_PREFIX}-petra:last_address`, address);
+        localStorage.setItem(`${APP_KEY_PREFIX}-walletKind`, 'external');
+        localStorage.setItem(`${APP_KEY_PREFIX}-externalProviderId`, 'petra');
+      }
+      finish({ok: true, state, action, address});
       return;
     }
 
     if (action === 'signMessage') {
-      const signature = sp.get('signature') || data?.signature || undefined;
+      const signature = data?.signature || undefined;
       if (!signature) {
-        finish({ ok: false, state, action, error: 'Missing signature' });
+        finish({ok: false, state, action, error: 'Missing signature'});
         return;
       }
-      finish({ ok: true, state, action, signature });
+      finish({ok: true, state, action, signature});
       return;
     }
 
     if (action === 'signAndSubmit') {
-      const hash = sp.get('hash') || data?.hash || undefined;
+      const hash = data?.hash || undefined;
       if (!hash) {
-        finish({ ok: false, state, action, error: 'Missing transaction hash' });
+        finish({ok: false, state, action, error: 'Missing transaction hash'});
         return;
       }
-      finish({ ok: true, state, action, hash });
+      finish({ok: true, state, action, hash});
       return;
     }
 
-    finish({ ok: false, state, action, error: 'Unknown action' });
-  } catch {
+    finish({ok: false, state, action, error: 'Unknown action'});
+  } catch (e) {
+    logPetra({phase: 'callbackCrashed', error: e});
     // As a last resort, try to redirect home
-    try { window.location.replace('/'); } catch {
-      // Ignore
-    }
+    window.location.replace('/');
   }
 }

@@ -46,6 +46,7 @@ const unwrapOptionVec = <T>(value: unknown): T | null => {
   return null; // unknown shape
 };
 
+
 export const aptosAdapter: ChainAdapter = {
   name: "aptos",
   generateAccount: aptosUtils.generateAccountAptos,

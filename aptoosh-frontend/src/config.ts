@@ -50,26 +50,6 @@ export interface NetworkConfig {
 }
 
 const configs: Record<NetworkId, NetworkConfig> = {
-  mainnet: {
-    name: 'mainnet',
-    account: '0x84171af48f266ba207890b75e78b503336c1cef911f693d65eb770da000f971f',
-    apiUrl: 'https://sync.aptoosh.com/api/m',
-    fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
-    circleApiUrl: 'https://sync.aptoosh.com/api/circle',
-    cdnBasePath: 'https://aptoosh.b-cdn.net',
-    aptos: {
-      nodeUrl: 'https://fullnode.mainnet.aptoslabs.com/v1',
-      indexerGraphqlUrl: 'https://indexer.mainnet.aptoslabs.com/v1/graphql',
-      indexerRestUrl: 'https://indexer-mainnet.staging.gcp.aptosdev.com/v1',
-    },
-    explorerBaseUrl: APTOS_EXPLORER_BASE,
-    approvedShopWallets: [],
-    supportedTokens: [
-      { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
-    ],
-    defaultGasUnitPrice: 100,
-    maxGasAmount: 200_000,
-  },
 
   testnet: {
     name: 'testnet',
@@ -124,6 +104,9 @@ const configs: Record<NetworkId, NetworkConfig> = {
 };
 
 export const getConfig = (network: NetworkId): NetworkConfig => configs[network];
+
+// Returns all available network IDs from the configuration
+export const getAvailableNetworkIds = (): NetworkId[] => Object.keys(configs) as NetworkId[];
 
 export const getCurrentConfig = (): NetworkConfig => {
   const raw = (localStorage.getItem(`${APP_KEY_PREFIX}-network`) as NetworkId) || 'testnet';

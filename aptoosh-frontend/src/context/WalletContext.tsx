@@ -1,5 +1,5 @@
 import {createContext, useContext, useState, useCallback, type ReactNode, useEffect, useMemo} from 'react'
-import {APP_KEY_PREFIX, getCurrentConfig} from '@/config'
+import {APP_KEY_PREFIX, getCurrentConfig, getAvailableNetworkIds} from '@/config'
 import {getActiveInternalWallet, loadAllInternalWallets, setActiveInternalWallet} from "@/lib/crypto/internalWallet.ts"
 import {setChainAdapter} from '@/lib/crypto/cryptoUtils.ts'
 import {aptosAdapter} from '@/lib/crypto/providers/aptosAdapter.ts'
@@ -176,17 +176,28 @@ export function WalletProvider({children}: { children: ReactNode }) {
     void attemptReconnect()
   }, [chain, adapters, externalProviderId])
 
+  const switchNetwork = useCallback((newNetwork: NetworkId) => {
+    if (network === newNetwork) return;
+
+    const supported = new Set(getAvailableNetworkIds());
+    if (!supported.has(newNetwork)) {
+      //toast.error(`Network ${newNetwork} is not supported by this app.`)
+      console.error(`Network ${newNetwork} is not supported by this app.`)
+      return;
+    }
+    setNetwork(newNetwork);
+    localStorage.setItem(`${APP_KEY_PREFIX}-network`, newNetwork);
+  }, [network])
+
   // Subscribe to account/network changes of active adapter
   useEffect(() => {
     if (!activeAdapter || walletKind !== 'external') return
-
     const offAcc = activeAdapter.onAccountChange?.((addr) => {
       setWalletAddress(addr)
     })
     const offNet = activeAdapter.onNetworkChange?.((n) => {
       if (n) {
-        setNetwork(n)
-        localStorage.setItem(`${APP_KEY_PREFIX}-network`, n)
+        switchNetwork(n)
       }
     })
 
@@ -194,7 +205,7 @@ export function WalletProvider({children}: { children: ReactNode }) {
       offAcc?.()
       offNet?.()
     }
-  }, [activeAdapter, walletKind])
+  }, [activeAdapter, walletKind, switchNetwork])
 
   const connect = useCallback(async (opts?: {
     kind?: WalletKind;
@@ -225,7 +236,9 @@ export function WalletProvider({children}: { children: ReactNode }) {
         // choose the first installed adapter, else first available
         adapter = targetAdapters.find(a => a.isInstalled?.()) ?? targetAdapters[0]
       }
-      if (!adapter) throw new Error('No wallet adapters available for chain: ' + targetChain)
+      if (!adapter) {
+        throw new Error('No wallet adapters available for chain: ' + targetChain)
+      }
 
       const address = await adapter.connect({silent: !!opts?.silent})
       if (address) {
@@ -258,12 +271,7 @@ export function WalletProvider({children}: { children: ReactNode }) {
     }
   }, [walletKind, activeAdapter])
 
-  const switchNetwork = useCallback((newNetwork: NetworkId) => {
-    if (network !== newNetwork) {
-      setNetwork(newNetwork)
-      localStorage.setItem(`${APP_KEY_PREFIX}-network`, newNetwork)
-    }
-  }, [network])
+
 
   const setExternalProviderId = useCallback((id: string | null) => {
     setExternalProviderIdState(id)
