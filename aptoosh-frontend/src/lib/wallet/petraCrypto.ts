@@ -20,24 +20,14 @@ const dec = new TextDecoder();
 export function utf8ToBytes(s: string): Uint8Array { return enc.encode(s); }
 export function bytesToUtf8(b: Uint8Array): string { return dec.decode(b); }
 
-// Base64 helpers (URL-safe not required; URLSearchParams will encode)
 export function base64EncodeUtf8Json(obj: unknown): string {
   const json = JSON.stringify(obj);
-  // Encode to base64 in the browser-safe way
-  // the btoa expects binary string; use TextEncoder + fromCharCode workaround
-  const bytes = enc.encode(json);
-  let binary = '';
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary);
+  return btoa(json);
 }
 
 export function base64DecodeUtf8ToObj<T = any>(b64: string): T {
   const binary = atob(b64);
-  const len = binary.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
-  const json = dec.decode(bytes);
-  return JSON.parse(json) as T;
+  return JSON.parse(binary) as T;
 }
 
 export function randomNonce24(): Uint8Array {
