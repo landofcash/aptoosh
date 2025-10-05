@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from "react";
-import { LogOut, X, Loader2, ExternalLink, HandCoins } from "lucide-react";
+import { LogOut, X, ExternalLink, HandCoins } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/context/WalletContext";
@@ -173,7 +173,7 @@ const WalletConnected: React.FC = () => {
               className="w-full justify-start text-sm bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
             >
               {faucetLoading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <HandCoins className="w-4 h-4 mr-2 animate-spin" />
               ) : network === "testnet" ? (
                 <ExternalLink className="w-4 h-4 mr-2" />
               ) : (

@@ -62,7 +62,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
       nodeUrl: 'https://fullnode.testnet.aptoslabs.com/v1',
       indexerGraphqlUrl: 'https://indexer.testnet.aptoslabs.com/v1/graphql',
       indexerRestUrl: 'https://indexer-testnet.staging.gcp.aptosdev.com/v1',
-      faucetUrl: 'https://faucet.testnet.aptoslabs.com',
+      faucetUrl: 'https://aptos.dev/network/faucet',
     },
     explorerBaseUrl: APTOS_EXPLORER_BASE,
     approvedShopWallets: [
