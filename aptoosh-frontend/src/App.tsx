@@ -105,7 +105,7 @@ function App() {
           <div className="flex flex-col gap-3">
             <WalletAuth/>
           </div>
-          
+
           {/* Wallet components stacked vertically for desktop */}
           {faucetUrl && walletAddress && (
             <Button
