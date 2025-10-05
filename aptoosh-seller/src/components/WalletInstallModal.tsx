@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import petraLogo from '@/assets/petra-logo.svg'
 import pontemLogo from '@/assets/pontem-logo.svg'
 import { X, ArrowUpRight } from 'lucide-react'
@@ -10,19 +10,26 @@ interface WalletInstallModalProps {
 
 // Aptos-focused wallet install modal (Petra recommended, Pontem as an alternative)
 const WalletInstallModal: React.FC<WalletInstallModalProps> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null
-
+   // Lock body scroll while modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isOpen]);
   // Official product pages (official sites)
   const petraUrl = 'https://petra.app'
   const pontemUrl = 'https://pontem.network/pontem-wallet'
-
+  if (!isOpen) return null
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg mx-4 bg-card border rounded-2xl shadow-lg overflow-hidden"
+        className="relative w-full max-w-lg mx-4 bg-card border rounded-2xl shadow-lg max-h-[85vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header: Aptos banner */}
@@ -38,7 +45,7 @@ const WalletInstallModal: React.FC<WalletInstallModalProps> = ({ isOpen, onClose
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-6 text-center">
+        <div className="p-6 space-y-6 text-center flex-1 overflow-y-auto">
           <div className="space-y-3">
             <h3 className="text-lg font-semibold">Petra Wallet</h3>
             <p className="text-sm text-muted-foreground">Official Aptos wallet by Aptos Labs. Available on Chrome and Mobile.</p>

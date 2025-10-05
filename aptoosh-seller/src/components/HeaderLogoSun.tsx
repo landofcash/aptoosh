@@ -3,21 +3,11 @@ import React from 'react'
 const HeaderLogoSun: React.FC = () => {
   return (
     <>
-      {/* Sun halo behind the logo */}
-      <div
-        aria-hidden="true"
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl pointer-events-none select-none"
-        style={{
-          width: '460px',
-          height: '460px',
-          background: 'radial-gradient(circle, rgba(211,250,230,0.3) 0%, rgba(163,230,190,0.4) 40%, rgba(147,197,173,0.3) 70%)'
-        }}
-      />
-      {/* Centered logo recolored via CSS mask */}
+          {/* Centered logo recolored via CSS mask — colors only changed */}
       <div
         aria-hidden="true"
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none
-         drop-shadow-[0_0_30px_rgba(255,200,0,0.6)]"
+      drop-shadow-[0_0_26px_rgba(255,170,210,0.45)]"
         style={{
           width: '200px',
           height: '200px',
@@ -29,11 +19,13 @@ const HeaderLogoSun: React.FC = () => {
           maskPosition: 'center',
           WebkitMaskSize: 'contain',
           maskSize: 'contain',
-          background: 'linear-gradient(oklab(0.0 0.0 0 / 1) 0%, oklab(0.0 0.0 0 / 0.4) 50%, oklab(0.0 0.0 0 / 1) 100%)'
-
+          // gentle iridescent fill (cool pink → mint → soft cyan → mint → pink)
+          background:
+            'linear-gradient(90deg, oklch(0.86 0.05 340) 0%, oklch(0.91 0.06 160) 25%, oklch(0.92 0.03 240) 50%, oklch(0.91 0.06 160) 75%, oklch(0.86 0.05 340) 100%)'
         }}
       />
     </>
+
   )
 }
 

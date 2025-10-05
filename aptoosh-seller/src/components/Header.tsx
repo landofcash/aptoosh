@@ -5,7 +5,6 @@ import {PackageSearch, ShoppingCart, Bug, Home} from "lucide-react";
 import WalletAuth from "@/components/WalletAuth";
 import {useWallet} from "@/context/WalletContext";
 import {APP_NAME, APP_VERSION} from "@/config";
-import HeaderLogoSun from "./HeaderLogoSun";
 
 const Header: React.FC = () => {
   const [debugMenuOpen, setDebugMenuOpen] = useState(false);
@@ -15,7 +14,6 @@ const Header: React.FC = () => {
     <header
       className="sticky top-0 z-50 bg-background text-foreground border-b border-border bg-no-repeat bg-center overflow-hidden"
     >
-      {!walletAddress && <HeaderLogoSun/>}
       <div className="relative z-10 max-w-7xl mx-auto h-16 px-6 flex items-stretch justify-between">
         {/* Logo and Title */}
         <div className="flex items-center space-x-3">
