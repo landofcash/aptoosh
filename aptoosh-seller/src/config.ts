@@ -68,7 +68,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
 
   devnet: {
     name: 'devnet',
-    account: '0x84171af48f266ba207890b75e78b503336c1cef911f693d65eb770da000f971f',
+    account: '0xf2593c12647a63c213ed55e74763190adfcd8d95a8c14c9cdcf2258808e6eff5',
     apiUrl: 'https://sync.aptoosh.com/api/d',
     fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
     cdnBasePath: 'https://aptoosh.b-cdn.net',
