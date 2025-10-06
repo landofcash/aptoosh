@@ -66,13 +66,10 @@ const configs: Record<NetworkId, NetworkConfig> = {
     },
     explorerBaseUrl: APTOS_EXPLORER_BASE,
     approvedShopWallets: [
-      '0x0000000000000000000000000000000000000000000000000000000000000001',
+      '0x179017d5a40740536702757576cd7253e510901cfb4d0a02f684b45430e5fa6d',
     ],
     supportedTokens: [
-      { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' },
-      { id: 1,
-        name: 'USDC', decimals: 6, img:null,
-        coinType: '0x5e156f1207d0ebfa19a9eeff00d62a282278fb8719f4fab3a586a0a2c0fffbea::coin::T' },
+      { id: 0, name: 'APT', decimals: 8, img: null, coinType: '0x1::aptos_coin::AptosCoin' }
     ],
     defaultGasUnitPrice: 100,
     maxGasAmount: 200_000,
@@ -80,7 +77,7 @@ const configs: Record<NetworkId, NetworkConfig> = {
 
   devnet: {
     name: 'devnet',
-    account: '0x84171af48f266ba207890b75e78b503336c1cef911f693d65eb770da000f971f',
+    account: '0xf2593c12647a63c213ed55e74763190adfcd8d95a8c14c9cdcf2258808e6eff5',
     apiUrl: 'https://sync.aptoosh.com/api/d',
     fileApiUrl: 'https://sync.aptoosh.com/api/cdn',
     circleApiUrl: 'http://localhost:3000/api/circle',
@@ -91,12 +88,11 @@ const configs: Record<NetworkId, NetworkConfig> = {
       faucetUrl: 'https://faucet.devnet.aptoslabs.com',
     },
     explorerBaseUrl: APTOS_EXPLORER_BASE,
-    approvedShopWallets: [],
+    approvedShopWallets: [
+      '0x179017d5a40740536702757576cd7253e510901cfb4d0a02f684b45430e5fa6d',
+    ],
     supportedTokens: [
-      { id: 0, name: 'APT', decimals: 8, img:null, coinType: '0x1::aptos_coin::AptosCoin' },
-      { id: 1,
-        name: 'USDC', decimals: 6, img:null,
-        coinType: '0x5e156f1207d0ebfa19a9eeff00d62a282278fb8719f4fab3a586a0a2c0fffbea::coin::T' },
+      { id: 0, name: 'APT', decimals: 8, img:null, coinType: '0x1::aptos_coin::AptosCoin' }      
     ],
     defaultGasUnitPrice: 100,
     maxGasAmount: 200_000,
